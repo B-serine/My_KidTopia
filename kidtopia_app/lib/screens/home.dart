@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../appColors/app_colors.dart';// import colors
+import '../assets/app_colors/app_colors.dart';// import colors
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -12,7 +13,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    int score = 1250;
+    int score = 1250; //will be fetched from the DB
+    String username = 'Alex'; // same
 
     return Scaffold(
       backgroundColor: brandBackground,
@@ -20,27 +22,32 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
                   onPressed: () {
-                    
+                    Navigator.pushNamed(context, '/profile');
                   },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero, // Removes default padding
                     foregroundColor: brandTextDark, // brandTextDark
                   ),
                   child: Row(
-                    children: const [
-                      Icon(Icons.account_circle, color: brandPurple, size: 28), // brandPurple
-                      SizedBox(width: 8),
-                      Text(
-                        'Alex',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                    children: [
+                      Icon(Icons.account_circle, color: brandPurple, size: 28),
+                      SizedBox(width: 4),
+                      Padding(
+                        padding: EdgeInsetsGeometry.only(
+                          right: 8,
+                        ), // the text (username) fits well :)
+                        child: Text(
+                          username, // the username of signed in user
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -57,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.star, color: Colors.white, size: 24),
+                      Icon(Icons.star_rounded, color: Colors.white, size: 24),
                       SizedBox(width: 6),
                       Text(
                         '$score',
@@ -98,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      "Let's test your knowledge!",
+                      "Show us your powers Hero!",
                       style: TextStyle(fontSize: 18, color: brandTextLight),
                     ),
                     const SizedBox(height: 32),
@@ -115,10 +122,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         shadowColor: brandPurple.withAlpha(80),
                       ),
                       onPressed: () {
-                        // Navigate to quiz screen
+                        Navigator.pushNamed(context, '/categories');
                       },
                       child: const Text(
-                        'Start Quiz',
+                        'Let\'s Go',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
