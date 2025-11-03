@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+// import screens for routing
 import 'screens/home.dart';
 import 'screens/sign_up.dart';
 import 'screens/categories.dart';
@@ -18,8 +20,12 @@ class KidtopiaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        textTheme: GoogleFonts.comfortaaTextTheme(),
+      ),
+      debugShowCheckedModeBanner: false,// remove the debug banner
       title: 'Kidtopia',
-      initialRoute: '/',
+      initialRoute: '/sign_up',
       routes: {
         '/': (context) => const HomeScreen(),
         '/sign_up': (context) => const SignUpScreen(),
