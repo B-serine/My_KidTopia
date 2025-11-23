@@ -6,10 +6,10 @@ class CategoriesScreen extends StatefulWidget {
   final bool isPremium; // Add premium status
 
   const CategoriesScreen({
-    Key? key,
+    super.key,
     this.totalScore = 1250,
     this.isPremium = false, // Default to non-premium
-  }) : super(key: key);
+  });
 
   @override
   State<CategoriesScreen> createState() => _CategoriesPageState();
@@ -483,7 +483,7 @@ class CategoryCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const CategoryCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.image,
     required this.gradient,
@@ -492,7 +492,7 @@ class CategoryCard extends StatelessWidget {
     this.lockType = CategoryLockType.unlocked,
     this.requiredScore,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

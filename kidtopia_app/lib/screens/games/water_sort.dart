@@ -4,7 +4,7 @@ import 'dart:async';
 import '../../widgets/victory_dialog.dart';
 
 class WaterSortGame extends StatefulWidget {
-  const WaterSortGame({Key? key}) : super(key: key);
+  const WaterSortGame({super.key});
 
   @override
   State<WaterSortGame> createState() => _WaterSortGameState();
@@ -260,11 +260,11 @@ class BottleWidget extends StatelessWidget {
   final int capacity;
 
   const BottleWidget({
-    Key? key,
+    super.key,
     required this.colors,
     required this.isSelected,
     required this.capacity,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -5,7 +5,7 @@ import '../../widgets/victory_dialog.dart';
 import '../../widgets/game_over_dialog.dart';
 
 class RainbowMonsterGame extends StatelessWidget {
-  const RainbowMonsterGame({Key? key}) : super(key: key);
+  const RainbowMonsterGame({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class RainbowMonsterGame extends StatelessWidget {
 }
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({Key? key}) : super(key: key);
+  const GameScreen({super.key});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -471,7 +471,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                               );
                             },
                           );
-                        }).toList(),
+                        }),
                       ],
                     ),
                   ),

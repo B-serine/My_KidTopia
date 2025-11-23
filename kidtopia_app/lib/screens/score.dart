@@ -4,15 +4,15 @@ import 'package:flutter/material.dart';
 import '../assets/app_colors/app_colors.dart';
 
 class ScoreScreen extends StatefulWidget {
-  const ScoreScreen({Key? key}) : super(key: key);
+  const ScoreScreen({super.key});
 
   @override
   State<ScoreScreen> createState() => _ScoreScreenState();
 }
 
 class _ScoreScreenState extends State<ScoreScreen> {
-  int _earnedPoints = 80;
-  int _starCount = 2; // 2 out of 3 stars earned
+  final int _earnedPoints = 80;
+  final int _starCount = 2; // 2 out of 3 stars earned
   int _countdown = 5;
   late Timer _redirectTimer;
   late Timer _countdownTimer;

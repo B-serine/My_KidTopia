@@ -5,7 +5,7 @@ import 'dart:ui';
 
 
 class PetFeedingGame extends StatelessWidget {
-  const PetFeedingGame({Key? key}) : super(key: key);
+  const PetFeedingGame({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class PetFeedingGame extends StatelessWidget {
 }
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({Key? key}) : super(key: key);
+  const GameScreen({super.key});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -659,7 +659,7 @@ class _GameScreenState extends State<GameScreen> {
 class VictoryDialog extends StatefulWidget {
   final VoidCallback onComplete;
 
-  const VictoryDialog({Key? key, required this.onComplete}) : super(key: key);
+  const VictoryDialog({super.key, required this.onComplete});
 
   @override
   State<VictoryDialog> createState() => _VictoryDialogState();

@@ -5,7 +5,7 @@ import 'dart:math';
 import '../../widgets/victory_dialog2.dart';
 
 class FoodMemoryGame extends StatefulWidget {
-  const FoodMemoryGame({Key? key}) : super(key: key);
+  const FoodMemoryGame({super.key});
 
   @override
   State<FoodMemoryGame> createState() => _FoodMemoryGameState();
@@ -245,10 +245,10 @@ class FoodMemoryCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const FoodMemoryCard({
-    Key? key,
+    super.key,
     required this.card,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

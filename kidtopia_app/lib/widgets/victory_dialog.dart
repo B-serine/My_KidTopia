@@ -4,7 +4,7 @@ import 'dart:ui';
 class VictoryDialog extends StatefulWidget {
   final VoidCallback onComplete;
 
-  const VictoryDialog({Key? key, required this.onComplete}) : super(key: key);
+  const VictoryDialog({super.key, required this.onComplete});
 
   @override
   State<VictoryDialog> createState() => _VictoryDialogState();

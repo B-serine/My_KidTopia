@@ -6,10 +6,10 @@ class GameOverDialog extends StatefulWidget {
   final VoidCallback onGoHome;
 
   const GameOverDialog({
-    Key? key,
+    super.key,
     required this.onPlayAgain,
     required this.onGoHome,
-  }) : super(key: key);
+  });
 
   @override
   State<GameOverDialog> createState() => _GameOverDialogState();
