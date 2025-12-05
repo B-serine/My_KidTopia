@@ -1,0 +1,12 @@
+[
+  {"question_text": "Which animal says \"meow\"?", "answers": ["Cat","Dog","Cow","Sheep"], "correct_index": 0},
+  {"question_text": "Which of these is a citrus fruit?", "answers": ["Orange","Banana","Apple","Grape"], "correct_index": 0},
+  {"question_text": "Which is a vegetable?", "answers": ["Carrot","Strawberry","Mango","Orange"], "correct_index": 0},
+  {"question_text": "What number comes after 2?", "answers": ["3","1","4","5"], "correct_index": 0},
+  {"question_text": "Which shape has 4 equal sides?", "answers": ["Square","Triangle","Circle","Rectangle"], "correct_index": 0},
+  {"question_text": "Which vehicle flies?", "answers": ["Airplane","Car","Boat","Bicycle"], "correct_index": 0},
+  {"question_text": "What color do you get by mixing red and blue?", "answers": ["Purple","Green","Orange","Brown"], "correct_index": 0},
+  {"question_text": "Which emotion shows happiness?", "answers": ["Smiling","Crying","Angry","Scared"], "correct_index": 0},
+  {"question_text": "Which instrument has keys and many strings inside?", "answers": ["Piano","Drum","Flute","Guitar"], "correct_index": 0},
+  {"question_text": "Which sport uses a hoop and ball?", "answers": ["Basketball","Soccer","Tennis","Cricket"], "correct_index": 0}
+]

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'dart:async';
 import '../../widgets/victory_dialog.dart';
+// skip-to-categories inlined below to avoid malformed widget file
 
 class WaterSortGame extends StatefulWidget {
   const WaterSortGame({super.key});
@@ -31,7 +32,7 @@ class _WaterSortGameState extends State<WaterSortGame> {
   void initializeGame() {
     // Cancel any pending victory dialog
     victoryTimer?.cancel();
-    
+
     // All available colors (7 colors)
     List<Color> allAvailableColors = [
       const Color.fromARGB(255, 165, 64, 183),
@@ -90,7 +91,7 @@ class _WaterSortGameState extends State<WaterSortGame> {
         if (selectedBottle != index && canPour(selectedBottle!, index)) {
           pourWater(selectedBottle!, index);
           selectedBottle = null;
-          
+
           // Check if game is won
           if (checkWin()) {
             victoryTimer = Timer(const Duration(seconds: 5), () {
@@ -114,9 +115,9 @@ class _WaterSortGameState extends State<WaterSortGame> {
   bool canPour(int from, int to) {
     if (bottles[from].isEmpty) return false;
     if (bottles[to].length >= bottleCapacity) return false;
-    
+
     if (bottles[to].isEmpty) return true;
-    
+
     // Can only pour if top colors match
     Color fromColor = bottles[from].last;
     Color toColor = bottles[to].last;
@@ -134,7 +135,7 @@ class _WaterSortGameState extends State<WaterSortGame> {
     for (var bottle in bottles) {
       if (bottle.isEmpty) continue;
       if (bottle.length != bottleCapacity) return false;
-      
+
       // Check if all colors in bottle are same
       Color firstColor = bottle[0];
       for (var color in bottle) {
@@ -152,7 +153,9 @@ class _WaterSortGameState extends State<WaterSortGame> {
         onComplete: () {
           // Close dialog and navigate back to home
           Navigator.of(context).pop(); // Close dialog
-          Navigator.of(context).pushReplacementNamed('/categories'); // Go to /categories
+          Navigator.of(
+            context,
+          ).pushReplacementNamed('/categories'); // Go to /categories
         },
       ),
     );
@@ -166,89 +169,121 @@ class _WaterSortGameState extends State<WaterSortGame> {
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
       ),
-      body: Container(
-        color: Colors.white, // White background
-        child: Column(
-          children: [
-            const SizedBox(height: 30),
-            // Cute message above bottles
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-              margin: const EdgeInsets.symmetric(horizontal: 15),
-              decoration: BoxDecoration(
-                color: Colors.pink.shade50,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.pink.shade200, width: 2),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.water_drop, color: Colors.blue.shade400, size: 24),
-                  const SizedBox(width: 10),
-                  const Flexible(
-                    child: Text(
-                      'Don\'t let them stay empty! 💧',
+      body: Stack(
+        children: [
+          Container(
+            color: Colors.white, // White background
+            child: Column(
+              children: [
+                const SizedBox(height: 30),
+                // Cute message above bottles
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 12,
+                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 15),
+                  decoration: BoxDecoration(
+                    color: Colors.pink.shade50,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.pink.shade200, width: 2),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.water_drop,
+                        color: Colors.blue.shade400,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 10),
+                      const Flexible(
+                        child: Text(
+                          'Don\'t let them stay empty! 💧',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Icon(
+                        Icons.water_drop,
+                        color: Colors.pink.shade400,
+                        size: 24,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // Game bottles
+                Expanded(
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(bottles.length, (index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 3),
+                          child: GestureDetector(
+                            onTap: () => onBottleTap(index),
+                            child: BottleWidget(
+                              colors: bottles[index],
+                              isSelected: selectedBottle == index,
+                              capacity: bottleCapacity,
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+                // Restart button in the middle
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: ElevatedButton.icon(
+                    onPressed: initializeGame,
+                    icon: const Icon(Icons.refresh, size: 26),
+                    label: const Text(
+                      'Play Again',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
                       ),
-                      textAlign: TextAlign.center,
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 35,
+                        vertical: 16,
+                      ),
+                      backgroundColor: Colors.blue.shade700,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 5,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Icon(Icons.water_drop, color: Colors.pink.shade400, size: 24),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
-            // Game bottles
-            Expanded(
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(bottles.length, (index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: GestureDetector(
-                        onTap: () => onBottleTap(index),
-                        child: BottleWidget(
-                          colors: bottles[index],
-                          isSelected: selectedBottle == index,
-                          capacity: bottleCapacity,
-                        ),
-                      ),
-                    );
-                  }),
                 ),
-              ),
+              ],
             ),
-            // Restart button in the middle
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: ElevatedButton.icon(
-                onPressed: initializeGame,
-                icon: const Icon(Icons.refresh, size: 26),
-                label: const Text(
-                  'Play Again',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 35,
-                    vertical: 16,
-                  ),
-                  backgroundColor: Colors.blue.shade700,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: 5,
-                ),
-              ),
+          ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: FloatingActionButton(
+              heroTag: 'skip_to_categories',
+              mini: true,
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.deepPurple,
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/categories');
+              },
+              child: const Icon(Icons.arrow_back),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -294,7 +329,7 @@ class BottleWidget extends StatelessWidget {
                 ...List.generate(capacity, (index) {
                   int colorIndex = capacity - 1 - index;
                   bool hasColor = colorIndex < colors.length;
-                  
+
                   return Container(
                     width: 50,
                     height: 38,

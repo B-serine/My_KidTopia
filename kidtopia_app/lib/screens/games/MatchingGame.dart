@@ -3,7 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'dart:async';
 import '../../widgets/victory_dialog.dart';
 import '../../widgets/game_over_dialog.dart';
-
+// skip-to-categories inlined below to avoid malformed widget file
 
 class MatchingGame extends StatefulWidget {
   const MatchingGame({super.key});
@@ -12,7 +12,8 @@ class MatchingGame extends StatefulWidget {
   State<MatchingGame> createState() => _MatchingGameState();
 }
 
-class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMixin {
+class _MatchingGameState extends State<MatchingGame>
+    with TickerProviderStateMixin {
   int level = 1;
   int timeLeft = 60;
   Timer? gameTimer;
@@ -21,7 +22,7 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
   bool isGameOver = false;
   bool isVictory = false;
   late AnimationController _celebrationController;
-  
+
   // Static data - 7 levels with increasing difficulty
   final List<Map<String, dynamic>> staticLevels = [
     {
@@ -38,7 +39,7 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
         {'emoji': '🧺', 'type': 'apple', 'label': '🍎'},
         {'emoji': '🧺', 'type': 'banana', 'label': '🍌'},
         {'emoji': '🧺', 'type': 'orange', 'label': '🍊'},
-      ]
+      ],
     },
     {
       'time': 55,
@@ -57,7 +58,7 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
         {'emoji': '🧺', 'type': 'strawberry', 'label': '🍓'},
         {'emoji': '🧺', 'type': 'watermelon', 'label': '🍉'},
         {'emoji': '🧺', 'type': 'cherry', 'label': '🍒'},
-      ]
+      ],
     },
     {
       'time': 50,
@@ -79,7 +80,7 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
         {'emoji': '🧺', 'type': 'corn', 'label': '🌽'},
         {'emoji': '🧺', 'type': 'tomato', 'label': '🍅'},
         {'emoji': '🧺', 'type': 'cucumber', 'label': '🥒'},
-      ]
+      ],
     },
     {
       'time': 45,
@@ -104,7 +105,7 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
         {'emoji': '🏠', 'type': 'bear', 'label': '🐻'},
         {'emoji': '🏠', 'type': 'panda', 'label': '🐼'},
         {'emoji': '🏠', 'type': 'lion', 'label': '🦁'},
-      ]
+      ],
     },
     {
       'time': 40,
@@ -132,7 +133,7 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
         {'emoji': '🎯', 'type': 'baseball', 'label': '⚾'},
         {'emoji': '🎯', 'type': 'billiard', 'label': '🎱'},
         {'emoji': '🎯', 'type': 'volleyball', 'label': '🏐'},
-      ]
+      ],
     },
     {
       'time': 37,
@@ -160,7 +161,7 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
         {'emoji': '🖼️', 'type': 'snail', 'label': '🐌'},
         {'emoji': '🖼️', 'type': 'bee', 'label': '🐝'},
         {'emoji': '🖼️', 'type': 'fly', 'label': '🪰'},
-      ]
+      ],
     },
     {
       'time': 35,
@@ -188,7 +189,7 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
         {'emoji': '🏺', 'type': 'rose', 'label': '🌹'},
         {'emoji': '🏺', 'type': 'green_leaf', 'label': '🍀'},
         {'emoji': '🏺', 'type': 'red_leaf', 'label': '🍁'},
-      ]
+      ],
     },
   ];
 
@@ -219,23 +220,27 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
       // Load baskets
       final basketList = levelData['baskets'] as List;
       for (var i = 0; i < basketList.length; i++) {
-        baskets.add(Basket(
-          emoji: basketList[i]['emoji'],
-          type: basketList[i]['type'],
-          label: basketList[i]['label'],
-          index: i,
-        ));
+        baskets.add(
+          Basket(
+            emoji: basketList[i]['emoji'],
+            type: basketList[i]['type'],
+            label: basketList[i]['label'],
+            index: i,
+          ),
+        );
       }
 
       // Load items (shuffled)
       final itemList = (levelData['items'] as List).toList();
       itemList.shuffle();
       for (var i = 0; i < itemList.length; i++) {
-        items.add(GameItem(
-          emoji: itemList[i]['emoji'],
-          type: itemList[i]['type'],
-          index: i,
-        ));
+        items.add(
+          GameItem(
+            emoji: itemList[i]['emoji'],
+            type: itemList[i]['type'],
+            index: i,
+          ),
+        );
       }
     });
 
@@ -275,7 +280,7 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
   void _checkLevelCompletion() {
     // Check if all items are correctly matched
     bool allMatched = items.every((item) => item.isMatched);
-    
+
     if (allMatched) {
       // Win condition - all items in correct baskets
       if (level < staticLevels.length) {
@@ -327,7 +332,10 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 15,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -397,23 +405,45 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.pink.shade100, Colors.purple.shade100, Colors.blue.shade100],
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.pink.shade100,
+                  Colors.purple.shade100,
+                  Colors.blue.shade100,
+                ],
+              ),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  Expanded(child: _buildGameArea()),
+                  _buildBaskets(),
+                ],
+              ),
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(child: _buildGameArea()),
-              _buildBaskets(),
-            ],
+          Positioned(
+            top: 16,
+            right: 16,
+            child: FloatingActionButton(
+              heroTag: 'skip_to_categories',
+              mini: true,
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.deepPurple,
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/categories');
+              },
+              child: const Icon(Icons.arrow_back),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -483,7 +513,7 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
         itemBuilder: (context, index) {
           final item = items[index];
           if (item.isMatched) return const SizedBox.shrink();
-          
+
           return Draggable<GameItem>(
             data: item,
             feedback: Material(
@@ -530,10 +560,7 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(
-          dragDevices: {
-            PointerDeviceKind.touch,
-            PointerDeviceKind.mouse,
-          },
+          dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
           scrollbars: false,
         ),
         child: ListView.separated(
@@ -547,7 +574,8 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
             return MouseRegion(
               cursor: SystemMouseCursors.grab,
               child: DragTarget<GameItem>(
-                onAcceptWithDetails: (details) => _checkMatch(details.data, basket),
+                onAcceptWithDetails: (details) =>
+                    _checkMatch(details.data, basket),
                 builder: (context, candidateData, rejectedData) {
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -561,13 +589,12 @@ class _MatchingGameState extends State<MatchingGame> with TickerProviderStateMix
                             : [Colors.orange.shade300, Colors.orange.shade500],
                       ),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 4,
-                      ),
+                      border: Border.all(color: Colors.white, width: 4),
                       boxShadow: [
                         BoxShadow(
-                          color: candidateData.isNotEmpty ? Colors.green : Colors.orange,
+                          color: candidateData.isNotEmpty
+                              ? Colors.green
+                              : Colors.orange,
                           blurRadius: candidateData.isNotEmpty ? 20 : 8,
                         ),
                       ],

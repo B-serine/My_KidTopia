@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:math';
 import '../../widgets/victory_dialog2.dart';
 import '../../widgets/game_over_dialog.dart';
+// skip-to-categories inlined below to avoid malformed widget file
 
 class MemoryCardGame extends StatefulWidget {
   const MemoryCardGame({super.key});
@@ -33,9 +34,24 @@ class _MemoryCardGameState extends State<MemoryCardGame> {
   bool gameStarted = false;
 
   final List<String> animals = [
-    '🐶', '🐱', '🐭', '🐹', '🐰', '🦊',
-    '🐻', '🐼', '🐨', '🐯', '🦁', '🐮',
-    '🐷', '🐸', '🐵', '🐔', '🐧', '🦆',
+    '🐶',
+    '🐱',
+    '🐭',
+    '🐹',
+    '🐰',
+    '🦊',
+    '🐻',
+    '🐼',
+    '🐨',
+    '🐯',
+    '🦁',
+    '🐮',
+    '🐷',
+    '🐸',
+    '🐵',
+    '🐔',
+    '🐧',
+    '🦆',
   ];
 
   @override
@@ -55,7 +71,6 @@ class _MemoryCardGameState extends State<MemoryCardGame> {
     flippedIndices.clear();
     gameStarted = true;
 
-   
     for (int i = 0; i < animals.length; i++) {
       cards.add(CardItem(emoji: animals[i], id: i));
       cards.add(CardItem(emoji: animals[i], id: i));
@@ -125,7 +140,9 @@ class _MemoryCardGameState extends State<MemoryCardGame> {
       builder: (context) => VictoryDialog(
         onComplete: () {
           Navigator.of(context).pop(); // Close dialog
-          Navigator.of(context).pushReplacementNamed('/categories'); // Go to /categories
+          Navigator.of(
+            context,
+          ).pushReplacementNamed('/categories'); // Go to /categories
         },
       ),
     );
@@ -151,105 +168,122 @@ class _MemoryCardGameState extends State<MemoryCardGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade200,
-              Colors.purple.shade100,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Back button
-                    IconButton(
-                      onPressed: () => Navigator.pushReplacementNamed(context, '/'),
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                    // Title
-                    const Text(
-                      '🎮 Memory Game',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black26,
-                            offset: Offset(2, 2),
-                            blurRadius: 4,
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.blue.shade200, Colors.purple.shade100],
+              ),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Back button
+                        IconButton(
+                          onPressed: () =>
+                              Navigator.pushReplacementNamed(context, '/'),
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 30,
                           ),
-                        ],
-                      ),
-                    ),
-                    // Matched pairs
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        '✨ $matchedPairs/18',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
                         ),
+                        // Title
+                        const Text(
+                          '🎮 Memory Game',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black26,
+                                offset: Offset(2, 2),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Matched pairs
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '✨ $matchedPairs/18',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Game Grid
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: GridView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 6,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 1,
+                            ),
+                        itemCount: cards.length,
+                        itemBuilder: (context, index) {
+                          return MemoryCard(
+                            card: cards[index],
+                            onTap: () => flipCard(index),
+                          );
+                        },
                       ),
                     ),
-                  ],
-                ),
-              ),
-              // Game Grid
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: GridView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 6,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                      childAspectRatio: 1,
-                    ),
-                    itemCount: cards.length,
-                    itemBuilder: (context, index) {
-                      return MemoryCard(
-                        card: cards[index],
-                        onTap: () => flipCard(index),
-                      );
-                    },
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: FloatingActionButton(
+              heroTag: 'skip_to_categories',
+              mini: true,
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.deepPurple,
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/categories');
+              },
+              child: const Icon(Icons.arrow_back),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -260,11 +294,7 @@ class MemoryCard extends StatelessWidget {
   final CardItem card;
   final VoidCallback onTap;
 
-  const MemoryCard({
-    super.key,
-    required this.card,
-    required this.onTap,
-  });
+  const MemoryCard({super.key, required this.card, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -276,8 +306,8 @@ class MemoryCard extends StatelessWidget {
           color: card.isMatched
               ? Colors.green.shade200
               : card.isFlipped
-                  ? Colors.white
-                  : Colors.purple.shade300,
+              ? Colors.white
+              : Colors.purple.shade300,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -293,10 +323,7 @@ class MemoryCard extends StatelessWidget {
         ),
         child: Center(
           child: card.isFlipped || card.isMatched
-              ? Text(
-                  card.emoji,
-                  style: const TextStyle(fontSize: 32),
-                )
+              ? Text(card.emoji, style: const TextStyle(fontSize: 32))
               : const Text(
                   '?',
                   style: TextStyle(

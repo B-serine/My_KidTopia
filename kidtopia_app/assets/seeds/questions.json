@@ -1,0 +1,12 @@
+[
+  {"category_name": "Animals", "question_text": "Which animal says \"meow\"?"},
+  {"category_name": "Fruits", "question_text": "Which of these is a citrus fruit?"},
+  {"category_name": "Vegetables", "question_text": "Which is a vegetable?"},
+  {"category_name": "Numbers", "question_text": "What number comes after 2?"},
+  {"category_name": "Shapes", "question_text": "Which shape has 4 equal sides?"},
+  {"category_name": "Transportation", "question_text": "Which vehicle flies?"},
+  {"category_name": "Colors", "question_text": "What color do you get by mixing red and blue?"},
+  {"category_name": "Emotions", "question_text": "Which emotion shows happiness?"},
+  {"category_name": "Music", "question_text": "Which instrument has keys and many strings inside?"},
+  {"category_name": "Sports", "question_text": "Which sport uses a hoop and ball?"}
+]

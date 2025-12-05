@@ -11,12 +11,28 @@ dependencies:
     sdk: flutter
   google_fonts: ^6.0.0
 
+  intl: any
+
+  flutter_bloc: ^9.1.1
+  get_it: ^9.1.0
+  path: ^1.9.1
+  sqflite: ^2.4.2
+  sqflite_common_ffi: ^2.3.6
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
+
+ 
 
 flutter:
   uses-material-design: true
   assets:
     - lib/assets/images/
+    - assets/seeds/categories.json
+    - assets/seeds/questions.json
+    - assets/seeds/answers.json
+
+

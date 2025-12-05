@@ -3,7 +3,6 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:ui';
 
-
 class PetFeedingGame extends StatelessWidget {
   const PetFeedingGame({super.key});
 
@@ -35,7 +34,7 @@ class _GameScreenState extends State<GameScreen> {
   bool gameWon = false;
   bool gameLost = false;
   Timer? gameTimer;
-  
+
   final List<Map<String, String>> pets = [
     {'emoji': '🐶', 'name': 'Buddy', 'sound': 'Woof!'},
     {'emoji': '🐱', 'name': 'Kitty', 'sound': 'Meow!'},
@@ -81,9 +80,9 @@ class _GameScreenState extends State<GameScreen> {
     gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         timeLeft--;
-       
+
         hunger = max(0, hunger - 5);
-        
+
         if (timeLeft % 2 == 0) {
           happiness = max(0, happiness - 3);
         }
@@ -122,14 +121,11 @@ class _GameScreenState extends State<GameScreen> {
             gameWon = false;
             gameStarted = false;
           });
-          Navigator.of(context).pushReplacementNamed('/categories'); 
+          Navigator.of(context).pushReplacementNamed('/categories');
         },
       ),
     );
   }
-
-
-
 
   void feedPet(Map<String, String> food) {
     if (!gameStarted) return;
@@ -193,463 +189,495 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              getBackgroundColor(),
-              Colors.white,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  // Title
-                  Text(
-                    '🐾 Pet Care Game 🐾',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.purple.shade700,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Timer
-                  if (gameStarted)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.orange,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '⏰ Time: ${timeLeft}s',
-                        style: const TextStyle(
-                          fontSize: 24,
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [getBackgroundColor(), Colors.white],
+              ),
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      // Title
+                      Text(
+                        '🐾 Pet Care Game 🐾',
+                        style: TextStyle(
+                          fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Colors.purple.shade700,
                         ),
                       ),
-                    ),
-                  const SizedBox(height: 20),
+                      const SizedBox(height: 10),
 
-                  // Pet Display
-                  Container(
-                    padding: const EdgeInsets.all(30),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          petName,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple,
+                      // Timer
+                      if (gameStarted)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '⏰ Time: ${timeLeft}s',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        Stack(
-                          alignment: Alignment.center,
+                      const SizedBox(height: 20),
+
+                      // Pet Display
+                      Container(
+                        padding: const EdgeInsets.all(30),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Column(
                           children: [
                             Text(
-                              currentPet,
-                              style: const TextStyle(fontSize: 120),
-                            ),
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: Text(
-                                getPetExpression(),
-                                style: const TextStyle(fontSize: 40),
+                              petName,
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.purple,
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 30),
-                        
-                        // Stats
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Column(
+                            const SizedBox(height: 20),
+                            Stack(
+                              alignment: Alignment.center,
                               children: [
-                                const Text(
-                                  '❤️ Happiness',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  width: 120,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade300,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: happiness / 100,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.pink,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  ),
-                                ),
                                 Text(
-                                  '$happiness%',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
+                                  currentPet,
+                                  style: const TextStyle(fontSize: 120),
+                                ),
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: Text(
+                                    getPetExpression(),
+                                    style: const TextStyle(fontSize: 40),
                                   ),
                                 ),
                               ],
                             ),
-                            Column(
+                            const SizedBox(height: 30),
+
+                            // Stats
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                const Text(
-                                  '🍽️ Fullness',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  width: 120,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade300,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: hunger / 100,
-                                    child: Container(
+                                Column(
+                                  children: [
+                                    const Text(
+                                      '❤️ Happiness',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      width: 120,
+                                      height: 20,
                                       decoration: BoxDecoration(
-                                        color: Colors.orange,
+                                        color: Colors.grey.shade300,
                                         borderRadius: BorderRadius.circular(10),
                                       ),
+                                      child: FractionallySizedBox(
+                                        alignment: Alignment.centerLeft,
+                                        widthFactor: happiness / 100,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.pink,
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '$happiness%',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Column(
+                                  children: [
+                                    const Text(
+                                      '🍽️ Fullness',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      width: 120,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade300,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: FractionallySizedBox(
+                                        alignment: Alignment.centerLeft,
+                                        widthFactor: hunger / 100,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange,
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '$hunger%',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Action Buttons
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: gameStarted ? playWithPet : null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    padding: const EdgeInsets.all(20),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    '⚽\nPlay',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ),
-                                Text(
-                                  '$hunger%',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
+                                ElevatedButton(
+                                  onPressed: gameStarted ? petPet : null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.pink,
+                                    padding: const EdgeInsets.all(20),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    '🤗\nPet',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        
-                        // Action Buttons
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            ElevatedButton(
-                              onPressed: gameStarted ? playWithPet : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                padding: const EdgeInsets.all(20),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                              ),
-                              child: const Text(
-                                '⚽\nPlay',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                ),
-                              ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Start/Restart Button
+                      if (!gameStarted)
+                        ElevatedButton(
+                          onPressed: startGame,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 40,
+                              vertical: 20,
                             ),
-                            ElevatedButton(
-                              onPressed: gameStarted ? petPet : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.pink,
-                                padding: const EdgeInsets.all(20),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                              ),
-                              child: const Text(
-                                '🤗\nPet',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                ),
-                              ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
                             ),
-                          ],
+                          ),
+                          child: Text(
+                            gameLost ? '🔄 Try Again!' : '🎮 Start Game!',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
+
+                      // Game Over Message
+                      if (gameLost && !gameStarted)
+                        Container(
+                          margin: const EdgeInsets.only(top: 20),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade100,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.red, width: 3),
+                          ),
+                          child: Column(
+                            children: const [
+                              Text(
+                                '😢 Oh No!',
+                                style: TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                'Your pet got too sad or hungry!\nTry to keep both bars above 90%!',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      const SizedBox(height: 20),
+
+                      // Food Section
+                      if (gameStarted)
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              const Text(
+                                '🍴 Feed Your Pet',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              Wrap(
+                                spacing: 10,
+                                runSpacing: 10,
+                                children: foods.map((food) {
+                                  return GestureDetector(
+                                    onTap: () => feedPet(food),
+                                    child: Container(
+                                      width: 100,
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.shade50,
+                                        borderRadius: BorderRadius.circular(15),
+                                        border: Border.all(
+                                          color: Colors.orange.shade200,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            food['emoji']!,
+                                            style: const TextStyle(
+                                              fontSize: 40,
+                                            ),
+                                          ),
+                                          Text(
+                                            food['name']!,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: 20),
+
+                      // Pet Selection (only before game starts)
+                      if (!gameStarted)
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              const Text(
+                                '🐾 Choose Your Pet',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.purple,
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              Wrap(
+                                spacing: 10,
+                                runSpacing: 10,
+                                children: pets.map((pet) {
+                                  bool isSelected = currentPet == pet['emoji'];
+                                  return GestureDetector(
+                                    onTap: () => changePet(pet),
+                                    child: Container(
+                                      width: 100,
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? Colors.purple.shade100
+                                            : Colors.grey.shade100,
+                                        borderRadius: BorderRadius.circular(15),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? Colors.purple
+                                              : Colors.grey.shade300,
+                                          width: 3,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            pet['emoji']!,
+                                            style: const TextStyle(
+                                              fontSize: 40,
+                                            ),
+                                          ),
+                                          Text(
+                                            pet['name']!,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      // Instructions
+                      if (!gameStarted)
+                        Container(
+                          margin: const EdgeInsets.only(top: 20),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.blue.shade200,
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                '📝 How to Win:',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                '🎯 Goal: Keep your pet happy and fed for 60 seconds!\n\n'
+                                '✅ Win: Both bars stay above 90%\n'
+                                '❌ Lose: Any bar reaches 0%\n\n'
+                                '💡 Tips:\n'
+                                '• Feed often to keep fullness up\n'
+                                '• Play and pet for happiness\n'
+                                '• Playing makes pet hungry!\n'
+                                '• Different foods give different boosts',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-
-                  // Start/Restart Button
-                  if (!gameStarted)
-                    ElevatedButton(
-                      onPressed: startGame,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      child: Text(
-                        gameLost ? '🔄 Try Again!' : '🎮 Start Game!',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-
-                  // Game Over Message
-                  if (gameLost && !gameStarted)
-                    Container(
-                      margin: const EdgeInsets.only(top: 20),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade100,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.red, width: 3),
-                      ),
-                      child: Column(
-                        children: const [
-                          Text(
-                            '😢 Oh No!',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            'Your pet got too sad or hungry!\nTry to keep both bars above 90%!',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  const SizedBox(height: 20),
-
-                  // Food Section
-                  if (gameStarted)
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            '🍴 Feed Your Pet',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.orange,
-                            ),
-                          ),
-                          const SizedBox(height: 15),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: foods.map((food) {
-                              return GestureDetector(
-                                onTap: () => feedPet(food),
-                                child: Container(
-                                  width: 100,
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.orange.shade50,
-                                    borderRadius: BorderRadius.circular(15),
-                                    border: Border.all(
-                                      color: Colors.orange.shade200,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        food['emoji']!,
-                                        style: const TextStyle(fontSize: 40),
-                                      ),
-                                      Text(
-                                        food['name']!,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(height: 20),
-
-                  // Pet Selection (only before game starts)
-                  if (!gameStarted)
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            '🐾 Choose Your Pet',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.purple,
-                            ),
-                          ),
-                          const SizedBox(height: 15),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: pets.map((pet) {
-                              bool isSelected = currentPet == pet['emoji'];
-                              return GestureDetector(
-                                onTap: () => changePet(pet),
-                                child: Container(
-                                  width: 100,
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? Colors.purple.shade100
-                                        : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(15),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? Colors.purple
-                                          : Colors.grey.shade300,
-                                      width: 3,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        pet['emoji']!,
-                                        style: const TextStyle(fontSize: 40),
-                                      ),
-                                      Text(
-                                        pet['name']!,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  // Instructions
-                  if (!gameStarted)
-                    Container(
-                      margin: const EdgeInsets.only(top: 20),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.blue.shade200, width: 2),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            '📝 How to Win:',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            '🎯 Goal: Keep your pet happy and fed for 60 seconds!\n\n'
-                            '✅ Win: Both bars stay above 90%\n'
-                            '❌ Lose: Any bar reaches 0%\n\n'
-                            '💡 Tips:\n'
-                            '• Feed often to keep fullness up\n'
-                            '• Play and pet for happiness\n'
-                            '• Playing makes pet hungry!\n'
-                            '• Different foods give different boosts',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.black87,
-                              height: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: FloatingActionButton(
+              heroTag: 'skip_to_categories',
+              mini: true,
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.deepPurple,
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/categories');
+              },
+              child: const Icon(Icons.arrow_back),
+            ),
+          ),
+        ],
       ),
     );
   }

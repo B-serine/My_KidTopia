@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../assets/app_colors/app_colors.dart';
+import '../logic/cubits/auth_cubit.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -9,273 +11,230 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int _selectedIndex = 2; // Profile tab
+  int _selectedIndex = 2;
 
   void _onBottomNavTap(int index) {
     if (index == _selectedIndex) return;
-
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
 
     if (index == 0) {
       Navigator.pushReplacementNamed(context, '/');
-      return;
-    }
-
-    if (index == 1) {
+    } else if (index == 1) {
       Navigator.pushReplacementNamed(context, '/categories');
-      return;
     }
+  }
+
+  void _handleLogout() {
+    context.read<AuthCubit>().signOut();
+    Navigator.pushReplacementNamed(context, '/sign_in');
+  }
+
+  void _handleUpgradeToPremium() {
+    context.read<AuthCubit>().upgradeToPremium();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Profile'),
-        backgroundColor: brandPurple,
-        foregroundColor: brandWhite,
-        elevation: 0,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [brandPurple.withOpacity(0.05), brandBackground],
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: brandPurple.withOpacity(0.2),
-                  child: Icon(Icons.person, size: 60, color: brandPurple),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Alex',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: brandPurple.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'Parent',
-                    style: TextStyle(
-                      color: brandPurple.withOpacity(0.9),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
+    return BlocConsumer<AuthCubit, AuthState>(
+      listener: (context, state) {
+        if (state is AuthAuthenticated && state.user.isPremium) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: const Text('You are now a premium member!'), backgroundColor: brandYellow),
+          );
+        } else if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: brandRed),
+          );
+        }
+      },
+      builder: (context, state) {
+        // Get user data from state
+        String username = 'Guest';
+        int totalScore = 0;
+        bool isPremium = false;
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: const [
-                    _StatCard('112', 'Points', Icons.stars),
-                    _StatCard('2', 'Best games', Icons.emoji_events),
-                    _StatCard('8', 'Unlocked', Icons.lock_open),
+        if (state is AuthAuthenticated) {
+          username = state.user.name;
+          totalScore = state.user.totalScore;
+          isPremium = state.user.isPremium;
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
+            title: const Text('Profile'),
+            backgroundColor: brandPurple,
+            foregroundColor: brandWhite,
+            elevation: 0,
+          ),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [brandPurple.withOpacity(0.05), brandBackground],
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    // Profile Avatar
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: brandPurple.withOpacity(0.2),
+                          child: Icon(Icons.person, size: 60, color: brandPurple),
+                        ),
+                        if (isPremium)
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(color: brandYellow, shape: BoxShape.circle),
+                              child: const Icon(Icons.star, color: Colors.white, size: 20),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    // Username
+                    Text(username, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 22)),
+                    const SizedBox(height: 4),
+                    
+                    // Member badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: isPremium ? brandYellow.withOpacity(0.2) : brandPurple.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        isPremium ? 'Premium Member' : 'Free Member',
+                        style: TextStyle(color: isPremium ? brandYellow : brandPurple.withOpacity(0.9), fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Stats cards
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _StatCard('$totalScore', 'Points', Icons.stars),
+                        _StatCard('${(totalScore / 100).floor()}', 'Best games', Icons.emoji_events),
+                        _StatCard('${isPremium ? 8 : 2}', 'Unlocked', Icons.lock_open),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Menu items
+                    _buildListTile(Icons.emoji_events, brandPurple, 'My score', '$totalScore points', () => Navigator.pushNamed(context, '/score')),
+                    _buildListTile(Icons.payment, brandYellow, 'Payment settings', null, () {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment settings coming soon!')));
+                    }),
+
+                    const SizedBox(height: 24),
+
+                    // Premium button or badge
+                    if (!isPremium)
+                      ElevatedButton.icon(
+                        onPressed: _handleUpgradeToPremium,
+                        icon: const Icon(Icons.star, size: 22),
+                        label: const Text('Become a pro member', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: brandPurple,
+                          foregroundColor: brandWhite,
+                          minimumSize: const Size(double.infinity, 52),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 2,
+                        ),
+                      ),
+
+                    if (isPremium)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: brandYellow.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: brandYellow, width: 2),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.workspace_premium, color: brandYellow),
+                            const SizedBox(width: 8),
+                            Text('Premium Member', style: TextStyle(color: brandYellow, fontWeight: FontWeight.bold, fontSize: 16)),
+                          ],
+                        ),
+                      ),
+
+                    const SizedBox(height: 10),
+
+                    // Logout button
+                    OutlinedButton.icon(
+                      onPressed: _handleLogout,
+                      icon: const Icon(Icons.logout, size: 22),
+                      label: const Text('Logout', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: brandRed,
+                        minimumSize: const Size(double.infinity, 52),
+                        side: BorderSide(color: brandTextLight.withOpacity(0.5), width: 2),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
                   ],
                 ),
-                const SizedBox(height: 24),
-
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  decoration: BoxDecoration(
-                    color: brandWhite,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: brandTextLight.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    leading: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: brandPurple.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.emoji_events,
-                        color: brandPurple,
-                        size: 28,
-                      ),
-                    ),
-                    title: const Text(
-                      'My score',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: brandTextLight,
-                      size: 18,
-                    ),
-                    onTap: () {
-                      print('Tapped on My score');
-                    },
-                  ),
-                ),
-
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  decoration: BoxDecoration(
-                    color: brandWhite,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: brandTextLight.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    leading: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: brandYellow.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.payment,
-                        color: brandYellow,
-                        size: 28,
-                      ),
-                    ),
-                    title: const Text(
-                      'Payment settings',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: brandTextLight,
-                      size: 18,
-                    ),
-                    onTap: () {
-                      print('Tapped on Payment settings');
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                ElevatedButton.icon(
-                  onPressed: () {
-                    print('Become pro member pressed');
-                  },
-                  icon: const Icon(Icons.star, size: 22),
-                  label: const Text(
-                    'Become a pro member',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: brandPurple,
-                    foregroundColor: brandTextDark,
-                    minimumSize: const Size(double.infinity, 52),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 2,
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/sign_in');
-                  },
-                  icon: const Icon(Icons.logout, size: 22),
-                  label: const Text(
-                    'Logout',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: brandRed,
-                    minimumSize: const Size(double.infinity, 52),
-                    side: BorderSide(
-                      color: brandTextLight.withOpacity(0.5),
-                      width: 2,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-              ],
+              ),
             ),
           ),
-        ),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            backgroundColor: brandWhite,
+            selectedItemColor: brandPurple,
+            unselectedItemColor: brandTextLight,
+            onTap: _onBottomNavTap,
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+              BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Categories'),
+              BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildListTile(IconData icon, Color iconColor, String title, String? subtitle, VoidCallback onTap) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: brandWhite,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: brandTextLight.withOpacity(0.1), spreadRadius: 1, blurRadius: 10, offset: const Offset(0, 2))],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        backgroundColor: brandWhite,
-        selectedItemColor: brandPurple,
-        unselectedItemColor: brandTextLight,
-        onTap: _onBottomNavTap,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.grid_view_rounded),
-            label: 'Categories',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: iconColor.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
+          child: Icon(icon, color: iconColor, size: 28),
+        ),
+        title: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+        subtitle: subtitle != null ? Text(subtitle, style: TextStyle(color: brandTextLight)) : null,
+        trailing: const Icon(Icons.arrow_forward_ios, color: brandTextLight, size: 18),
+        onTap: onTap,
       ),
     );
   }
 }
 
-// ⭐ STAT CARD WIDGET
 class _StatCard extends StatelessWidget {
   final String count;
   final String label;
@@ -289,27 +248,13 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: brandWhite,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: brandTextLight.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: brandTextLight.withOpacity(0.1), spreadRadius: 1, blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         children: [
           Icon(icon, color: brandPurple, size: 28),
           const SizedBox(height: 6),
-          Text(
-            count,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: brandTextDark,
-            ),
-          ),
+          Text(count, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: brandTextDark)),
           const SizedBox(height: 2),
           Text(label, style: TextStyle(color: brandTextLight, fontSize: 11)),
         ],

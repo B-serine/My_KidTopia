@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
-// google_fonts: ^6.0.0 (in pubspec.yaml to load fonts)
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import screens for routing
+
+// Database
+import 'data/databases/db_helper.dart';
+
+// Repositories
+import 'data/repositories/user_repository.dart';
+import 'data/repositories/category_repository.dart';
+import 'data/repositories/question_repository.dart';
+import 'data/repositories/answer_repository.dart';
+
+// Cubits
+import 'logic/cubits/auth_cubit.dart';
+import 'logic/cubits/category_cubit.dart';
+import 'logic/cubits/quiz_cubit.dart';
+
+// Screens
 import 'screens/home.dart';
 import 'screens/sign_up.dart';
 import 'screens/categories.dart';
@@ -9,7 +24,8 @@ import 'screens/quiz.dart';
 import 'screens/sign_in.dart';
 import 'screens/score.dart';
 import 'screens/profile.dart';
-// import game screens
+
+// Game screens
 import 'screens/games/water_sort.dart';
 import 'screens/games/RainbowMonsterGame.dart';
 import 'screens/games/PetFeedingGame.dart';
@@ -17,7 +33,15 @@ import 'screens/games/MemoryCardGame.dart';
 import 'screens/games/FoodMemoryGame.dart';
 import 'screens/games/MatchingGame.dart';
 
+// App colors
+import 'assets/app_colors/app_colors.dart';
+
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize database factory for Windows/Linux/macOS
+  DatabaseHelper.initializeDatabaseFactory();
+
   runApp(const KidtopiaApp());
 }
 
@@ -26,29 +50,213 @@ class KidtopiaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        textTheme: GoogleFonts.comfortaaTextTheme(),
+    return const DatabaseInitializer();
+  }
+}
+
+/// Splash screen that initializes database before showing main app
+class DatabaseInitializer extends StatefulWidget {
+  const DatabaseInitializer({super.key});
+
+  @override
+  State<DatabaseInitializer> createState() => _DatabaseInitializerState();
+}
+
+class _DatabaseInitializerState extends State<DatabaseInitializer> {
+  bool _isInitialized = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeDatabase();
+  }
+
+  Future<void> _initializeDatabase() async {
+    try {
+      // Initialize database - this creates tables if they don't exist
+      await DatabaseHelper.instance.database;
+      // Ensure seeded data exists for existing installs
+      await DatabaseHelper.instance.seedFromAssetsIfEmpty();
+
+      // Small delay to show splash screen
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to initialize database: ${e.toString()}';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Show error screen if initialization failed
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor: brandBackground,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: brandRed),
+                const SizedBox(height: 16),
+                Text(
+                  'Initialization Error',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: brandTextDark,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _errorMessage!,
+                  style: TextStyle(color: brandTextLight),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _errorMessage = null;
+                    });
+                    _initializeDatabase();
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: brandPurple),
+                  child: Text('Retry', style: TextStyle(color: brandWhite)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Show splash screen while initializing
+    if (!_isInitialized) {
+      return Scaffold(
+        backgroundColor: brandBackground,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // App logo/icon
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: brandPurple,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: brandPurple.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.child_care,
+                  size: 60,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Kidtopia',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: brandPurple,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Learning made fun!',
+                style: TextStyle(fontSize: 16, color: brandTextLight),
+              ),
+              const SizedBox(height: 48),
+              CircularProgressIndicator(color: brandPurple),
+              const SizedBox(height: 16),
+              Text(
+                'Initializing...',
+                style: TextStyle(color: brandTextLight, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Database initialized - show main app with providers
+    return _buildMainApp();
+  }
+
+  Widget _buildMainApp() {
+    // Create repository instances
+    final userRepository = UserRepository();
+    final categoryRepository = CategoryRepository();
+    final questionRepository = QuestionRepository();
+    final answerRepository = AnswerRepository();
+
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<UserRepository>(create: (_) => userRepository),
+        RepositoryProvider<CategoryRepository>(
+          create: (_) => categoryRepository,
+        ),
+        RepositoryProvider<QuestionRepository>(
+          create: (_) => questionRepository,
+        ),
+        RepositoryProvider<AnswerRepository>(create: (_) => answerRepository),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthCubit>(
+            create: (context) => AuthCubit(userRepository),
+          ),
+          BlocProvider<CategoryCubit>(
+            create: (context) => CategoryCubit(categoryRepository),
+          ),
+          BlocProvider<QuizCubit>(
+            create: (context) =>
+                QuizCubit(questionRepository, answerRepository),
+          ),
+        ],
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: MaterialApp(
+            theme: ThemeData(textTheme: GoogleFonts.comfortaaTextTheme()),
+            title: 'Kidtopia',
+            initialRoute: '/sign_up',
+            routes: {
+              '/': (context) => const HomeScreen(),
+              '/sign_up': (context) => const SignUpScreen(),
+              '/categories': (context) => const CategoriesScreen(),
+              '/quiz': (context) => const QuizScreen(),
+              '/sign_in': (context) => const SignInScreen(),
+              '/score': (context) => const ScoreScreen(),
+              '/profile': (context) => const ProfileScreen(),
+              '/food_memory_game': (context) => const FoodMemoryGame(),
+              '/matching_game': (context) => const MatchingGame(),
+              '/memory_card_game': (context) => const MemoryCardGame(),
+              '/pet_feeding_game': (context) => const PetFeedingGame(),
+              '/rainbow_monster_game': (context) => const RainbowMonsterGame(),
+              '/water_sort_game': (context) => const WaterSortGame(),
+            },
+          ),
+        ),
       ),
-      debugShowCheckedModeBanner: false,// remove the debug banner
-      title: 'Kidtopia',
-      initialRoute: '/sign_up',
-      routes: {
-        '/': (context) => const HomeScreen(),
-        '/sign_up': (context) => const SignUpScreen(),
-        '/categories': (context) => const CategoriesScreen(),
-        '/quiz': (context) => const QuizScreen(),
-        '/sign_in': (context) => const SignInScreen(),
-        '/score': (context) => const ScoreScreen(),
-        '/profile': (context) => const ProfileScreen(),
-        // Game routes
-        '/food_memory_game': (context) => const FoodMemoryGame(),
-        '/matching_game': (context) => const MatchingGame(),
-        '/memory_card_game': (context) => const MemoryCardGame(),
-        '/pet_feeding_game': (context) => const PetFeedingGame(),
-        '/rainbow_monster_game': (context) => const RainbowMonsterGame(),
-        '/water_sort_game': (context) => const WaterSortGame(),
-      },
     );
   }
 }
