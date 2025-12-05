@@ -236,6 +236,7 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
         child: Directionality(
           textDirection: TextDirection.ltr,
           child: MaterialApp(
+            debugShowCheckedModeBanner: false,
             theme: ThemeData(textTheme: GoogleFonts.comfortaaTextTheme()),
             title: 'Kidtopia',
             initialRoute: '/sign_up',
