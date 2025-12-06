@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Animals",
+    "description": "Learn about different animals",
+    "color": "#FF8B5CF6",
+    "is_active": 1,
+    "required_score": 0,
+    "is_premium": 0
+  },
+  {
+    "name": "Fruits",
+    "description": "Learn about different fruits",
+    "color": "#FFF97316",
+    "is_active": 1,
+    "required_score": 0,
+    "is_premium": 0
+  },
+  {
+    "name": "Vegetables",
+    "description": "Learn about healthy vegetables",
+    "color": "#FF22C55E",
+    "is_active": 1,
+    "required_score": 0,
+    "is_premium": 0
+  },
+  {
+    "name": "Numbers",
+    "description": "Learn to count and recognize numbers",
+    "color": "#FFEAB308",
+    "is_active": 1,
+    "required_score": 0,
+    "is_premium": 0
+  },
+  {
+    "name": "Shapes",
+    "description": "Learn about geometric shapes",
+    "color": "#FF06B6D4",
+    "is_active": 1,
+    "required_score": 0,
+    "is_premium": 0
+  },
+  {
+    "name": "Transportation",
+    "description": "Learn about different vehicles",
+    "color": "#FF3B82F6",
+    "is_active": 1,
+    "required_score": 50,
+    "is_premium": 0
+  },
+  {
+    "name": "Colors",
+    "description": "Learn about colors and shades",
+    "color": "#FFEC4899",
+    "is_active": 1,
+    "required_score": 100,
+    "is_premium": 0
+  },
+  {
+    "name": "Emotions",
+    "description": "Learn about emotions and feelings",
+    "color": "#FFD4AF37",
+    "is_active": 1,
+    "required_score": 30,
+    "is_premium": 0
+  },
+  {
+    "name": "Music",
+    "description": "Learn about musical instruments",
+    "color": "#FFA855F7",
+    "is_active": 1,
+    "required_score": 0,
+    "is_premium": 1
+  },
+  {
+    "name": "Sports",
+    "description": "Learn about different sports",
+    "color": "#FFF43F5E",
+    "is_active": 1,
+    "required_score": 0,
+    "is_premium": 1
+  }
+]
