@@ -4,6 +4,8 @@ import 'dart:async';
 import '../../widgets/victory_dialog.dart';
 import '../../widgets/game_over_dialog.dart';
 import '../../widgets/skip_to_categories.dart';
+import 'package:kidtopia_app/l10n/app_localizations.dart';
+
 
 class RainbowMonsterGame extends StatelessWidget {
   const RainbowMonsterGame({super.key});
@@ -186,6 +188,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       body: Stack(
         children: [
@@ -217,9 +221,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     ),
                     child: Column(
                       children: [
-                        const Text(
-                          '🌈 Rainbow Monster Collector 🌈',
-                          style: TextStyle(
+                        Text(
+                          '🌈 ${l10n.rainbowMonsterCollector} 🌈',
+                          style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: Colors.purple,
@@ -311,18 +315,18 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                '🎨 Customize Your Game!',
-                                style: TextStyle(
+                              Text(
+                                '🎨 ${l10n.customizeGame}',
+                                style: const TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.purple,
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              const Text(
-                                'Choose Monster Type:',
-                                style: TextStyle(
+                              Text(
+                                l10n.chooseMonsterType,
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black87,
@@ -392,9 +396,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                 },
                               ),
                               const SizedBox(height: 24),
-                              const Text(
-                                'Choose Background:',
-                                style: TextStyle(
+                              Text(
+                                l10n.chooseBackground,
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black87,
@@ -467,9 +471,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                     ),
                                     backgroundColor: Colors.green,
                                   ),
-                                  child: const Text(
-                                    '🎮 Start Game!',
-                                    style: TextStyle(
+                                  child: Text(
+                                    '🎮 ${l10n.startGame}',
+                                    style: const TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
@@ -527,7 +531,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                           child: Text(
                                             monster.emoji,
                                             style: const TextStyle(
-                                              fontSize: 40,
+                                              fontSize: 35,
                                             ),
                                           ),
                                         ),
@@ -561,22 +565,23 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          '📝 How to Play:',
-                          style: TextStyle(
+                        Text(
+                          '📝 ${l10n.howToPlay}',
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.purple,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          '🎯 Goal: Score $winScoreThreshold points to win!\n👆 Tap bouncing monsters to catch them (10 points each).\n⏰ You have 60 seconds. Good luck! 🎈',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black87,
-                          ),
-                        ),
+                       Text(
+  '${l10n.monsterGameGoal(winScoreThreshold)}\n${l10n.monsterGameInstructions}',
+  style: const TextStyle(
+    fontSize: 14,
+    color: Colors.black87,
+  ),
+),
+
                       ],
                     ),
                   ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../assets/app_colors/app_colors.dart';
 import '../logic/cubits/auth_cubit.dart';
+import '../l10n/app_localizations.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -35,6 +36,8 @@ class _SignInState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
@@ -61,7 +64,7 @@ class _SignInState extends State<SignInScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'Kidtopia',
+                        l10n.kidtopia,
                         style: TextStyle(
                           fontSize: 40,
                           fontWeight: FontWeight.bold,
@@ -70,7 +73,7 @@ class _SignInState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Welcome Back!',
+                        l10n.welcomeBack,
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -79,17 +82,16 @@ class _SignInState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "Let's play again!",
+                        l10n.letsPlayAgain,
                         style: TextStyle(fontSize: 16, color: brandTextLight),
                       ),
                       const SizedBox(height: 24),
 
-                      // Username Field
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Username',
+                            l10n.username,
                             style: TextStyle(color: brandTextDark),
                           ),
                           const SizedBox(height: 8),
@@ -97,7 +99,7 @@ class _SignInState extends State<SignInScreen> {
                             controller: _usernameController,
                             validator: (value) {
                               if (value == null || value.isEmpty)
-                                return 'Please enter your username';
+                                return l10n.pleaseEnterUsername;
                               return null;
                             },
                             decoration: InputDecoration(
@@ -105,7 +107,7 @@ class _SignInState extends State<SignInScreen> {
                                 Icons.person,
                                 color: brandTextLight,
                               ),
-                              hintText: 'Enter your username',
+                              hintText: l10n.enterUsername,
                               filled: true,
                               fillColor: brandWhite,
                               border: OutlineInputBorder(
@@ -121,12 +123,11 @@ class _SignInState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Password Field
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Password',
+                            l10n.password,
                             style: TextStyle(color: brandTextDark),
                           ),
                           const SizedBox(height: 8),
@@ -135,7 +136,7 @@ class _SignInState extends State<SignInScreen> {
                             obscureText: !_isPasswordVisible,
                             validator: (value) {
                               if (value == null || value.isEmpty)
-                                return 'Please enter your password';
+                                return l10n.pleaseEnterPassword;
                               return null;
                             },
                             decoration: InputDecoration(
@@ -155,7 +156,7 @@ class _SignInState extends State<SignInScreen> {
                                       _isPasswordVisible = !_isPasswordVisible,
                                 ),
                               ),
-                              hintText: 'Enter your password',
+                              hintText: l10n.enterPassword,
                               filled: true,
                               fillColor: brandWhite,
                               border: OutlineInputBorder(
@@ -171,26 +172,24 @@ class _SignInState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Forgot Password
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Password reset coming soon!'),
+                              SnackBar(
+                                content: Text(l10n.passwordResetSoon),
                               ),
                             );
                           },
                           child: Text(
-                            'Forgot Password?',
+                            l10n.forgotPassword,
                             style: TextStyle(color: brandPurple),
                           ),
                         ),
                       ),
                       const SizedBox(height: 12),
 
-                      // Sign In Button
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brandPurple,
@@ -211,19 +210,18 @@ class _SignInState extends State<SignInScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text(
-                                'Sign In',
-                                style: TextStyle(fontSize: 18),
+                            : Text(
+                                l10n.signIn,
+                                style: const TextStyle(fontSize: 18),
                               ),
                       ),
                       const SizedBox(height: 16),
 
-                      // Sign Up Link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Don't have an account?",
+                            l10n.dontHaveAccount,
                             style: TextStyle(color: brandTextDark),
                           ),
                           TextButton(
@@ -232,7 +230,7 @@ class _SignInState extends State<SignInScreen> {
                               '/sign_up',
                             ),
                             child: Text(
-                              'Sign Up!',
+                              l10n.signUp,
                               style: TextStyle(color: brandPurple),
                             ),
                           ),

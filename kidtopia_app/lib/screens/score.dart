@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../assets/app_colors/app_colors.dart';
 import '../logic/cubits/quiz_cubit.dart';
 import '../logic/cubits/auth_cubit.dart';
+import '../l10n/app_localizations.dart';
 
 class ScoreScreen extends StatefulWidget {
   const ScoreScreen({super.key});
@@ -19,6 +20,12 @@ class _ScoreScreenState extends State<ScoreScreen>
   late Animation<double> _scaleAnimation;
   int _countdown = 5;
   Timer? _timer;
+
+  // Store the quiz results from arguments
+  int earnedPoints = 0;
+  int totalQuestions = 0;
+  int correctAnswers = 0;
+  int starCount = 0;
 
   final List<String> _gameRoutes = [
     '/food_memory_game',
@@ -40,32 +47,75 @@ class _ScoreScreenState extends State<ScoreScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
     );
     _animationController.forward();
-    // Only start countdown if the completed quiz earned a mini-game (>=7 correct)
+  }
+
+  
+ @override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+  
+  print('📊 ScoreScreen - didChangeDependencies called');
+  
+  // Get arguments and extract quiz results
+  final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+  
+  print('📦 Arguments received: $args');
+  
+  if (args != null) {
+    earnedPoints = args['finalScore'] ?? 0;
+    totalQuestions = args['totalQuestions'] ?? 0;
+    correctAnswers = args['correctAnswers'] ?? 0;
+    starCount = args['starCount'] ?? 0;
+    
+    print('✅ Using arguments:');
+    print('   Earned Points: $earnedPoints');
+    print('   Total Questions: $totalQuestions');
+    print('   Correct Answers: $correctAnswers');
+    print('   Star Count: $starCount');
+  } else {
+    print('⚠️ No arguments found, trying QuizCubit...');
+    // Fallback: try to get from QuizCubit
     final quizState = context.read<QuizCubit>().state;
-    if (quizState is QuizCompleted && quizState.correctAnswers >= 7) {
-      _startCountdown();
+    print('   QuizCubit state: $quizState');
+    
+    if (quizState is QuizCompleted) {
+      earnedPoints = quizState.finalScore;
+      totalQuestions = quizState.totalQuestions;
+      correctAnswers = quizState.correctAnswers;
+      starCount = quizState.starCount;
+      
+      print('   Using QuizCubit data');
+    } else {
+      print('   ❌ QuizCubit is not QuizCompleted!');
     }
   }
+  
+  // Start countdown if earned reward
+  if (correctAnswers >= 7 && _timer == null) {
+    print('⏰ Starting countdown...');
+    _startCountdown();
+  } else {
+    print('⏰ No countdown (correct answers: $correctAnswers)');
+  }
+}
 
   void _startCountdown() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_countdown > 1) {
-        setState(() => _countdown--);
+        if (mounted) {
+          setState(() => _countdown--);
+        }
       } else {
         timer.cancel();
-        // Only navigate to a mini-game if user earned >=7/10
-        final quizState = context.read<QuizCubit>().state;
-        if (quizState is QuizCompleted && quizState.correctAnswers >= 7) {
+        if (correctAnswers >= 7) {
           _navigateToRandomGame();
-        } else {
-          // Do nothing; user wasn't awarded a mini-game
-          setState(() {});
         }
       }
     });
   }
 
   void _navigateToRandomGame() {
+    if (!mounted) return;
     final randomRoute = _gameRoutes[Random().nextInt(_gameRoutes.length)];
     context.read<QuizCubit>().resetQuiz();
     Navigator.pushReplacementNamed(context, randomRoute);
@@ -80,24 +130,10 @@ class _ScoreScreenState extends State<ScoreScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Get quiz results from QuizCubit state (data from database)
-    final quizState = context.read<QuizCubit>().state;
-
-    int earnedPoints = 0;
-    int totalQuestions = 0;
-    int correctAnswers = 0;
-    int starCount = 0;
-
-    if (quizState is QuizCompleted) {
-      earnedPoints = quizState.finalScore;
-      totalQuestions = quizState.totalQuestions;
-      correctAnswers = quizState.correctAnswers;
-      starCount = quizState.starCount;
-    }
+    final l10n = AppLocalizations.of(context)!;
 
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, authState) {
-        // Get user's total score from AuthCubit (updated in database)
         int totalScore = 0;
         if (authState is AuthAuthenticated) {
           totalScore = authState.user.totalScore;
@@ -112,9 +148,8 @@ class _ScoreScreenState extends State<ScoreScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Title based on performance
                     Text(
-                      _getResultTitle(starCount),
+                      _getResultTitle(starCount, l10n),
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
@@ -123,7 +158,6 @@ class _ScoreScreenState extends State<ScoreScreen>
                     ),
                     const SizedBox(height: 24),
 
-                    // Stars animation
                     ScaleTransition(
                       scale: _scaleAnimation,
                       child: Row(
@@ -147,7 +181,6 @@ class _ScoreScreenState extends State<ScoreScreen>
                     ),
                     const SizedBox(height: 32),
 
-                    // Score card
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(24),
@@ -164,7 +197,6 @@ class _ScoreScreenState extends State<ScoreScreen>
                       ),
                       child: Column(
                         children: [
-                          // Points earned this round
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -184,7 +216,7 @@ class _ScoreScreenState extends State<ScoreScreen>
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'points',
+                                l10n.pointsEarned,
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: brandTextLight,
@@ -196,7 +228,6 @@ class _ScoreScreenState extends State<ScoreScreen>
                           Divider(color: brandTextLight.withOpacity(0.2)),
                           const SizedBox(height: 16),
 
-                          // Stats row
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
@@ -204,7 +235,7 @@ class _ScoreScreenState extends State<ScoreScreen>
                                 icon: Icons.check_circle,
                                 color: Colors.green,
                                 value: '$correctAnswers/$totalQuestions',
-                                label: 'Correct',
+                                label: l10n.correct,
                               ),
                               Container(
                                 height: 40,
@@ -215,7 +246,7 @@ class _ScoreScreenState extends State<ScoreScreen>
                                 icon: Icons.stars,
                                 color: brandYellow,
                                 value: '$totalScore',
-                                label: 'Total Score',
+                                label: l10n.totalScore,
                               ),
                             ],
                           ),
@@ -224,7 +255,6 @@ class _ScoreScreenState extends State<ScoreScreen>
                     ),
                     const SizedBox(height: 32),
 
-                    // Countdown text - only show if user earned a reward
                     if (correctAnswers >= 7)
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -241,7 +271,7 @@ class _ScoreScreenState extends State<ScoreScreen>
                             Icon(Icons.timer, color: brandPurple, size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              'Next game in $_countdown seconds...',
+                              l10n.nextGameIn(_countdown),
                               style: TextStyle(
                                 color: brandPurple,
                                 fontWeight: FontWeight.w600,
@@ -266,7 +296,7 @@ class _ScoreScreenState extends State<ScoreScreen>
                             Icon(Icons.info, color: Colors.orange, size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              'Score 7+ to unlock a mini-game!',
+                              l10n.scoreToUnlock,
                               style: TextStyle(
                                 color: Colors.orange,
                                 fontWeight: FontWeight.w600,
@@ -277,10 +307,8 @@ class _ScoreScreenState extends State<ScoreScreen>
                       ),
                     const SizedBox(height: 32),
 
-                    // Action buttons
                     Row(
                       children: [
-                        // Play Again button
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
@@ -292,7 +320,7 @@ class _ScoreScreenState extends State<ScoreScreen>
                               );
                             },
                             icon: const Icon(Icons.replay),
-                            label: const Text('Play Again'),
+                            label: Text(l10n.playAgain),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: brandPurple,
                               side: BorderSide(color: brandPurple, width: 2),
@@ -304,7 +332,6 @@ class _ScoreScreenState extends State<ScoreScreen>
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // Next Now button - only active if award earned
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: (correctAnswers >= 7)
@@ -315,7 +342,7 @@ class _ScoreScreenState extends State<ScoreScreen>
                                 : null,
                             icon: const Icon(Icons.skip_next),
                             label: Text(
-                              correctAnswers >= 7 ? 'Next Now' : 'No Reward',
+                              correctAnswers >= 7 ? l10n.nextNow : l10n.noReward,
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: correctAnswers >= 7
@@ -336,7 +363,6 @@ class _ScoreScreenState extends State<ScoreScreen>
                     ),
                     const SizedBox(height: 12),
 
-                    // Home button
                     TextButton.icon(
                       onPressed: () {
                         _timer?.cancel();
@@ -345,7 +371,7 @@ class _ScoreScreenState extends State<ScoreScreen>
                       },
                       icon: Icon(Icons.home, color: brandTextLight),
                       label: Text(
-                        'Go Home',
+                        l10n.goHome,
                         style: TextStyle(color: brandTextLight),
                       ),
                     ),
@@ -359,16 +385,16 @@ class _ScoreScreenState extends State<ScoreScreen>
     );
   }
 
-  String _getResultTitle(int stars) {
+  String _getResultTitle(int stars, AppLocalizations l10n) {
     switch (stars) {
       case 3:
-        return 'Excellent!';
+        return l10n.scoreScreenTitle;
       case 2:
-        return 'Great Job!';
+        return l10n.greatJob;
       case 1:
-        return 'Good Try!';
+        return l10n.goodTry;
       default:
-        return 'Keep Practicing!';
+        return l10n.keepPracticing;
     }
   }
 }

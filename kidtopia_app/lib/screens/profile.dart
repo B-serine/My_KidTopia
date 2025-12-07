@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../assets/app_colors/app_colors.dart';
 import '../logic/cubits/auth_cubit.dart';
-
+import '../l10n/app_localizations.dart';
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -35,11 +35,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated && state.user.isPremium) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: const Text('You are now a premium member!'), backgroundColor: brandYellow),
+            SnackBar(content: Text(l10n.nowPremium), backgroundColor: brandYellow),
           );
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -48,8 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       },
       builder: (context, state) {
-        // Get user data from state
-        String username = 'Guest';
+        String username = l10n.guest;
         int totalScore = 0;
         bool isPremium = false;
 
@@ -62,7 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Scaffold(
           appBar: AppBar(
             leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-            title: const Text('Profile'),
+            title: Text(l10n.profile),
             backgroundColor: brandPurple,
             foregroundColor: brandWhite,
             elevation: 0,
@@ -81,7 +82,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: 10),
-                    // Profile Avatar
                     Stack(
                       children: [
                         CircleAvatar(
@@ -103,11 +103,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 12),
                     
-                    // Username
                     Text(username, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 22)),
                     const SizedBox(height: 4),
                     
-                    // Member badge
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                       decoration: BoxDecoration(
@@ -115,37 +113,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        isPremium ? 'Premium Member' : 'Free Member',
+                        isPremium ? l10n.premiumMember : l10n.freeMember,
                         style: TextStyle(color: isPremium ? brandYellow : brandPurple.withOpacity(0.9), fontSize: 14, fontWeight: FontWeight.w600),
                       ),
                     ),
                     const SizedBox(height: 20),
 
-                    // Stats cards
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        _StatCard('$totalScore', 'Points', Icons.stars),
-                        _StatCard('${(totalScore / 100).floor()}', 'Best games', Icons.emoji_events),
-                        _StatCard('${isPremium ? 8 : 2}', 'Unlocked', Icons.lock_open),
+                        _StatCard('$totalScore', l10n.points, Icons.stars),
+                        _StatCard('${(totalScore / 100).floor()}', l10n.bestGames, Icons.emoji_events),
+                        _StatCard('${isPremium ? 8 : 2}', l10n.unlocked, Icons.lock_open),
                       ],
                     ),
                     const SizedBox(height: 24),
 
-                    // Menu items
-                    _buildListTile(Icons.emoji_events, brandPurple, 'My score', '$totalScore points', () => Navigator.pushNamed(context, '/score')),
-                    _buildListTile(Icons.payment, brandYellow, 'Payment settings', null, () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment settings coming soon!')));
+                    _buildListTile(Icons.emoji_events, brandPurple, l10n.myScore, l10n.scorePoints(totalScore), () => Navigator.pushNamed(context, '/score')),
+                    _buildListTile(Icons.payment, brandYellow, l10n.paymentSettings, null, () {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.paymentComingSoon)));
                     }),
 
                     const SizedBox(height: 24),
 
-                    // Premium button or badge
                     if (!isPremium)
                       ElevatedButton.icon(
                         onPressed: _handleUpgradeToPremium,
                         icon: const Icon(Icons.star, size: 22),
-                        label: const Text('Become a pro member', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                        label: Text(l10n.becomePro, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brandPurple,
                           foregroundColor: brandWhite,
@@ -168,18 +163,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             Icon(Icons.workspace_premium, color: brandYellow),
                             const SizedBox(width: 8),
-                            Text('Premium Member', style: TextStyle(color: brandYellow, fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text(l10n.premiumMember, style: TextStyle(color: brandYellow, fontWeight: FontWeight.bold, fontSize: 16)),
                           ],
                         ),
                       ),
 
                     const SizedBox(height: 10),
 
-                    // Logout button
                     OutlinedButton.icon(
                       onPressed: _handleLogout,
                       icon: const Icon(Icons.logout, size: 22),
-                      label: const Text('Logout', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                      label: Text(l10n.logout, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: brandRed,
                         minimumSize: const Size(double.infinity, 52),
@@ -200,10 +194,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             selectedItemColor: brandPurple,
             unselectedItemColor: brandTextLight,
             onTap: _onBottomNavTap,
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Categories'),
-              BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+            items: [
+              BottomNavigationBarItem(icon: const Icon(Icons.home_outlined), label: l10n.home),
+              BottomNavigationBarItem(icon: const Icon(Icons.grid_view_rounded), label: l10n.categories),
+              BottomNavigationBarItem(icon: const Icon(Icons.person_outline), label: l10n.profile),
             ],
           ),
         );

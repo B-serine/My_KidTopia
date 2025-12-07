@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'dart:async';
 import '../../widgets/victory_dialog.dart';
-// skip-to-categories inlined below to avoid malformed widget file
+import 'package:kidtopia_app/l10n/app_localizations.dart';
+
 
 class WaterSortGame extends StatefulWidget {
   const WaterSortGame({super.key});
@@ -163,9 +164,11 @@ class _WaterSortGameState extends State<WaterSortGame> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Water Sort Game'),
+        title: Text(l10n.waterSortGame),
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
       ),
@@ -197,10 +200,10 @@ class _WaterSortGameState extends State<WaterSortGame> {
                         size: 24,
                       ),
                       const SizedBox(width: 10),
-                      const Flexible(
+                      Flexible(
                         child: Text(
-                          'Don\'t let them stay empty! 💧',
-                          style: TextStyle(
+                          l10n.waterSortMessage,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
@@ -218,24 +221,27 @@ class _WaterSortGameState extends State<WaterSortGame> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                // Game bottles
+                // Game bottles - FIXED WIDTH OVERFLOW
                 Expanded(
                   child: Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(bottles.length, (index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 3),
-                          child: GestureDetector(
-                            onTap: () => onBottleTap(index),
-                            child: BottleWidget(
-                              colors: bottles[index],
-                              isSelected: selectedBottle == index,
-                              capacity: bottleCapacity,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(bottles.length, (index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: GestureDetector(
+                              onTap: () => onBottleTap(index),
+                              child: BottleWidget(
+                                colors: bottles[index],
+                                isSelected: selectedBottle == index,
+                                capacity: bottleCapacity,
+                              ),
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                      ),
                     ),
                   ),
                 ),
@@ -245,9 +251,9 @@ class _WaterSortGameState extends State<WaterSortGame> {
                   child: ElevatedButton.icon(
                     onPressed: initializeGame,
                     icon: const Icon(Icons.refresh, size: 26),
-                    label: const Text(
-                      'Play Again',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.playAgain,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -316,8 +322,8 @@ class BottleWidget extends StatelessWidget {
         children: [
           // Bottle
           Container(
-            width: 55,
-            height: 160,
+            width: 50,
+            height: 150,
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
               border: Border.all(color: Colors.grey.shade700, width: 2.5),
@@ -331,8 +337,8 @@ class BottleWidget extends StatelessWidget {
                   bool hasColor = colorIndex < colors.length;
 
                   return Container(
-                    width: 50,
-                    height: 38,
+                    width: 45,
+                    height: 35,
                     decoration: BoxDecoration(
                       color: hasColor ? colors[colorIndex] : Colors.transparent,
                       border: Border(
@@ -349,7 +355,7 @@ class BottleWidget extends StatelessWidget {
           ),
           // Bottle base
           Container(
-            width: 48,
+            width: 44,
             height: 8,
             decoration: BoxDecoration(
               color: Colors.grey.shade700,

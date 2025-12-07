@@ -5,7 +5,7 @@ import '../logic/cubits/auth_cubit.dart';
 import '../logic/cubits/category_cubit.dart';
 import '../logic/cubits/quiz_cubit.dart';
 import '../data/models/category.dart';
-
+import '../l10n/app_localizations.dart';
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
 
@@ -20,11 +20,9 @@ class _CategoriesPageState extends State<CategoriesScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch categories from database
     context.read<CategoryCubit>().loadCategories();
   }
 
-  // Parse hex color from database
   Color _parseColor(String? hexColor) {
     if (hexColor == null || hexColor.isEmpty) return brandPurple;
     try {
@@ -34,7 +32,6 @@ class _CategoriesPageState extends State<CategoriesScreen> {
     }
   }
 
-  // Get icon based on category name
   IconData _getCategoryIcon(String name) {
     final iconMap = {
       'animals': Icons.pets,
@@ -57,26 +54,24 @@ class _CategoriesPageState extends State<CategoriesScreen> {
   }
 
   void _onCategoryTap(Category category, int userScore, bool isPremium) {
-    // Check if category is locked by premium
     if (category.isPremium && !isPremium) {
       _showPremiumDialog();
       return;
     }
     
-    // Check if category is locked by score
     if (category.requiredScore > userScore && !isPremium) {
       _showScoreRequiredDialog(category.name, category.requiredScore, userScore);
       return;
     }
 
     setState(() => _selectedCategoryId = category.id);
-
-    // Load quiz from database
     context.read<QuizCubit>().loadQuiz(category.id!);
     Navigator.pushNamed(context, '/quiz');
   }
 
   void _showPremiumDialog() {
+    final l10n = AppLocalizations.of(context)!;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -84,13 +79,13 @@ class _CategoriesPageState extends State<CategoriesScreen> {
         title: Row(children: [
           Icon(Icons.workspace_premium, color: brandYellow, size: 28),
           const SizedBox(width: 8),
-          const Text('Premium Required'),
+          Text(l10n.premiumRequired),
         ]),
-        content: const Text('Unlock this category with Premium subscription!'),
+        content: Text(l10n.unlockCategory),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Maybe Later', style: TextStyle(color: brandTextLight)),
+            child: Text(l10n.maybeLater, style: TextStyle(color: brandTextLight)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -101,7 +96,7 @@ class _CategoriesPageState extends State<CategoriesScreen> {
               backgroundColor: brandYellow,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: Text('Get Premium', style: TextStyle(color: brandWhite)),
+            child: Text(l10n.getPremium, style: TextStyle(color: brandWhite)),
           ),
         ],
       ),
@@ -109,6 +104,8 @@ class _CategoriesPageState extends State<CategoriesScreen> {
   }
 
   void _showScoreRequiredDialog(String categoryName, int requiredScore, int userScore) {
+    final l10n = AppLocalizations.of(context)!;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -116,26 +113,26 @@ class _CategoriesPageState extends State<CategoriesScreen> {
         title: Row(children: [
           Icon(Icons.lock, color: brandPurple, size: 28),
           const SizedBox(width: 8),
-          const Text('Score Required'),
+          Text(l10n.scoreRequired),
         ]),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('You need $requiredScore points to unlock $categoryName!'),
+            Text(l10n.needPoints(requiredScore, categoryName)),
             const SizedBox(height: 12),
-            Text('Earn ${requiredScore - userScore} more points.', style: TextStyle(color: brandTextLight)),
+            Text(l10n.earnMorePoints(requiredScore - userScore), style: TextStyle(color: brandTextLight)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.ok)),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: brandPurple,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: Text('Keep Playing', style: TextStyle(color: brandWhite)),
+            child: Text(l10n.keepPlaying, style: TextStyle(color: brandWhite)),
           ),
         ],
       ),
@@ -158,6 +155,8 @@ class _CategoriesPageState extends State<CategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, authState) {
         int userScore = 0;
@@ -180,7 +179,7 @@ class _CategoriesPageState extends State<CategoriesScreen> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Categories', style: TextStyle(color: brandTextDark, fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(l10n.categories, style: TextStyle(color: brandTextDark, fontSize: 20, fontWeight: FontWeight.bold)),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(color: brandYellow, borderRadius: BorderRadius.circular(999)),
@@ -195,7 +194,6 @@ class _CategoriesPageState extends State<CategoriesScreen> {
           ),
           body: BlocBuilder<CategoryCubit, CategoryState>(
             builder: (context, categoryState) {
-              // Loading state
               if (categoryState is CategoryLoading) {
                 return Center(
                   child: Column(
@@ -203,13 +201,12 @@ class _CategoriesPageState extends State<CategoriesScreen> {
                     children: [
                       CircularProgressIndicator(color: brandPurple),
                       const SizedBox(height: 16),
-                      Text('Loading categories...', style: TextStyle(color: brandTextLight)),
+                      Text(l10n.loadingCategories, style: TextStyle(color: brandTextLight)),
                     ],
                   ),
                 );
               }
               
-              // Error state
               if (categoryState is CategoryError) {
                 return Center(
                   child: Column(
@@ -222,18 +219,16 @@ class _CategoriesPageState extends State<CategoriesScreen> {
                       ElevatedButton(
                         onPressed: () => context.read<CategoryCubit>().loadCategories(),
                         style: ElevatedButton.styleFrom(backgroundColor: brandPurple),
-                        child: Text('Retry', style: TextStyle(color: brandWhite)),
+                        child: Text(l10n.retry, style: TextStyle(color: brandWhite)),
                       ),
                     ],
                   ),
                 );
               }
               
-              // Loaded state - show categories from database
               if (categoryState is CategoryLoaded) {
                 final categories = categoryState.categories;
                 
-                // Empty state - no categories in database
                 if (categories.isEmpty) {
                   return Center(
                     child: Column(
@@ -242,12 +237,12 @@ class _CategoriesPageState extends State<CategoriesScreen> {
                         Icon(Icons.category_outlined, size: 80, color: brandTextLight.withOpacity(0.5)),
                         const SizedBox(height: 24),
                         Text(
-                          'No Categories Yet',
+                          l10n.noCategoriesYet,
                           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: brandTextDark),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Categories will appear here once added to the database',
+                          l10n.categoriesWillAppear,
                           style: TextStyle(color: brandTextLight),
                           textAlign: TextAlign.center,
                         ),
@@ -255,7 +250,7 @@ class _CategoriesPageState extends State<CategoriesScreen> {
                         ElevatedButton.icon(
                           onPressed: () => context.read<CategoryCubit>().loadCategories(),
                           icon: const Icon(Icons.refresh),
-                          label: const Text('Refresh'),
+                          label: Text(l10n.refresh),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: brandPurple,
                             foregroundColor: brandWhite,
@@ -266,7 +261,6 @@ class _CategoriesPageState extends State<CategoriesScreen> {
                   );
                 }
 
-                // Display categories from database
                 return Padding(
                   padding: const EdgeInsets.all(16),
                   child: GridView.builder(
@@ -295,7 +289,6 @@ class _CategoriesPageState extends State<CategoriesScreen> {
                 );
               }
               
-              // Initial state
               return Center(child: CircularProgressIndicator(color: brandPurple));
             },
           ),
@@ -305,10 +298,10 @@ class _CategoriesPageState extends State<CategoriesScreen> {
             selectedItemColor: brandPurple,
             unselectedItemColor: brandTextLight,
             onTap: _onBottomNavTap,
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Categories'),
-              BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+            items: [
+              BottomNavigationBarItem(icon: const Icon(Icons.home_outlined), label: l10n.home),
+              BottomNavigationBarItem(icon: const Icon(Icons.grid_view_rounded), label: l10n.categories),
+              BottomNavigationBarItem(icon: const Icon(Icons.person_outline), label: l10n.profile),
             ],
           ),
         );
@@ -338,6 +331,7 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final screenWidth = MediaQuery.of(context).size.width;
     final cardSize = (screenWidth - 48) / 2;
 
@@ -363,7 +357,6 @@ class _CategoryCard extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Category image from database
             if (category.imageUrl != null && category.imageUrl!.isNotEmpty)
               Positioned.fill(
                 child: ClipRRect(
@@ -382,7 +375,6 @@ class _CategoryCard extends StatelessWidget {
                 ),
               ),
             
-            // Overlay gradient
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -397,7 +389,6 @@ class _CategoryCard extends StatelessWidget {
               ),
             ),
             
-            // Content
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -416,7 +407,7 @@ class _CategoryCard extends StatelessWidget {
                       ),
                       if (category.requiredScore > 0 && !category.isPremium)
                         Text(
-                          '${category.requiredScore} pts required',
+                          l10n.ptsRequired(category.requiredScore),
                           style: TextStyle(color: brandYellow, fontSize: cardSize * 0.07, fontWeight: FontWeight.w600),
                         ),
                       if (category.isPremium)
@@ -425,7 +416,7 @@ class _CategoryCard extends StatelessWidget {
                             Icon(Icons.workspace_premium, color: brandYellow, size: cardSize * 0.08),
                             const SizedBox(width: 4),
                             Text(
-                              'Premium',
+                              l10n.premium,
                               style: TextStyle(color: brandYellow, fontSize: cardSize * 0.07, fontWeight: FontWeight.w600),
                             ),
                           ],
@@ -436,7 +427,6 @@ class _CategoryCard extends StatelessWidget {
               ),
             ),
             
-            // Lock icon
             if (isLocked)
               Center(
                 child: Container(

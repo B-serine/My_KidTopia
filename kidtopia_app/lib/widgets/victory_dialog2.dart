@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import '../l10n/app_localizations.dart';
+
 
 
 class VictoryDialog extends StatefulWidget {
@@ -8,10 +10,10 @@ class VictoryDialog extends StatefulWidget {
   const VictoryDialog({super.key, required this.onComplete});
 
   @override
-  State<VictoryDialog> createState() => _VictoryDialogState();
+  State<VictoryDialog> createState() => _VictoryDialog2State();
 }
 
-class _VictoryDialogState extends State<VictoryDialog>
+class _VictoryDialog2State extends State<VictoryDialog>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
@@ -38,7 +40,6 @@ class _VictoryDialogState extends State<VictoryDialog>
 
     _controller.forward();
 
-    // Auto dismiss after 5 seconds and redirect to home
     Future.delayed(const Duration(seconds: 5), () {
       if (mounted) {
         widget.onComplete();
@@ -54,6 +55,8 @@ class _VictoryDialogState extends State<VictoryDialog>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
       child: Dialog(
@@ -84,7 +87,6 @@ class _VictoryDialogState extends State<VictoryDialog>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Rotating Trophy
                 RotationTransition(
                   turns: _rotationAnimation,
                   child: Container(
@@ -109,10 +111,9 @@ class _VictoryDialogState extends State<VictoryDialog>
                   ),
                 ),
                 const SizedBox(height: 30),
-                // Victory Text
-                const Text(
-                  '🎉 YOU WIN! 🎉',
-                  style: TextStyle(
+                Text(
+                  l10n.youWin,
+                  style: const TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -127,9 +128,9 @@ class _VictoryDialogState extends State<VictoryDialog>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 15),
-                const Text(
-                  'Amazing Memory!',
-                  style: TextStyle(
+                Text(
+                  l10n.amazingMemory,
+                  style: const TextStyle(
                     fontSize: 24,
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -137,7 +138,6 @@ class _VictoryDialogState extends State<VictoryDialog>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
-                // Stars
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(5, (index) {

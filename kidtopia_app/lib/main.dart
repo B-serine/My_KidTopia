@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 
 // Database
 import 'data/databases/db_helper.dart';
@@ -15,6 +17,7 @@ import 'data/repositories/answer_repository.dart';
 import 'logic/cubits/auth_cubit.dart';
 import 'logic/cubits/category_cubit.dart';
 import 'logic/cubits/quiz_cubit.dart';
+import 'logic/cubits/locale_cubit.dart';
 
 // Screens
 import 'screens/home.dart';
@@ -38,10 +41,7 @@ import 'assets/app_colors/app_colors.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize database factory for Windows/Linux/macOS
   DatabaseHelper.initializeDatabaseFactory();
-
   runApp(const KidtopiaApp());
 }
 
@@ -54,7 +54,6 @@ class KidtopiaApp extends StatelessWidget {
   }
 }
 
-/// Splash screen that initializes database before showing main app
 class DatabaseInitializer extends StatefulWidget {
   const DatabaseInitializer({super.key});
 
@@ -74,12 +73,8 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
 
   Future<void> _initializeDatabase() async {
     try {
-      // Initialize database - this creates tables if they don't exist
       await DatabaseHelper.instance.database;
-      // Ensure seeded data exists for existing installs
       await DatabaseHelper.instance.seedFromAssetsIfEmpty();
-
-      // Small delay to show splash screen
       await Future.delayed(const Duration(milliseconds: 500));
 
       if (mounted) {
@@ -98,9 +93,24 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
 
   @override
   Widget build(BuildContext context) {
-    // Show error screen if initialization failed
     if (_errorMessage != null) {
-      return Scaffold(
+      return _buildErrorScreen();
+    }
+
+    if (!_isInitialized) {
+      return _buildSplashScreen();
+    }
+
+    return _buildMainApp();
+  }
+
+  Widget _buildErrorScreen() {
+    return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
         backgroundColor: brandBackground,
         body: Center(
           child: Padding(
@@ -139,18 +149,19 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
             ),
           ),
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    // Show splash screen while initializing
-    if (!_isInitialized) {
-      return Scaffold(
+  Widget _buildSplashScreen() {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
         backgroundColor: brandBackground,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App logo/icon
               Container(
                 width: 120,
                 height: 120,
@@ -195,15 +206,11 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
             ],
           ),
         ),
-      );
-    }
-
-    // Database initialized - show main app with providers
-    return _buildMainApp();
+      ),
+    );
   }
 
   Widget _buildMainApp() {
-    // Create repository instances
     final userRepository = UserRepository();
     final categoryRepository = CategoryRepository();
     final questionRepository = QuestionRepository();
@@ -232,16 +239,37 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
             create: (context) =>
                 QuizCubit(questionRepository, answerRepository),
           ),
+          BlocProvider<LocaleCubit>(
+            create: (context) => LocaleCubit(),
+          ),
         ],
-        child: Directionality(
-          textDirection: TextDirection.ltr,
-          child: MaterialApp(
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(textTheme: GoogleFonts.comfortaaTextTheme()),
-            title: 'Kidtopia',
-            initialRoute: '/sign_up',
-            routes: {
-              '/': (context) => const HomeScreen(),
+        child: BlocBuilder<LocaleCubit, Locale>(
+          builder: (context, locale) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              
+              // Localization configuration
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en'), // English
+                Locale('fr'), // French
+                Locale('ar'), // Arabic
+              ],
+              locale: locale,
+              
+              theme: ThemeData(
+                textTheme: GoogleFonts.comfortaaTextTheme(),
+                useMaterial3: true,
+              ),
+              title: 'Kidtopia',
+              initialRoute: '/sign_up',
+              routes: {
+             '/': (context) => const HomeScreen(),
               '/sign_up': (context) => const SignUpScreen(),
               '/categories': (context) => const CategoriesScreen(),
               '/quiz': (context) => const QuizScreen(),
@@ -254,8 +282,9 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
               '/pet_feeding_game': (context) => const PetFeedingGame(),
               '/rainbow_monster_game': (context) => const RainbowMonsterGame(),
               '/water_sort_game': (context) => const WaterSortGame(),
-            },
-          ),
+              },
+            );
+          },
         ),
       ),
     );

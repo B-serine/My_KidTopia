@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:math';
 import '../../widgets/victory_dialog2.dart';
 import '../../widgets/game_over_dialog.dart';
-// skip-to-categories inlined below to avoid malformed widget file
+import '../../l10n/app_localizations.dart';
 
 class MemoryCardGame extends StatefulWidget {
   const MemoryCardGame({super.key});
@@ -167,6 +167,8 @@ class _MemoryCardGameState extends State<MemoryCardGame> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       body: Stack(
         children: [
@@ -198,10 +200,10 @@ class _MemoryCardGameState extends State<MemoryCardGame> {
                           ),
                         ),
                         // Title
-                        const Text(
-                          '🎮 Memory Game',
-                          style: TextStyle(
-                            fontSize: 28,
+                        Text(
+                          '🎮 ${l10n.memoryGame}',
+                          style: const TextStyle(
+                            fontSize: 23,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                             shadows: [
@@ -233,7 +235,7 @@ class _MemoryCardGameState extends State<MemoryCardGame> {
                           child: Text(
                             '✨ $matchedPairs/18',
                             style: const TextStyle(
-                              fontSize: 20,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -327,7 +329,7 @@ class MemoryCard extends StatelessWidget {
               : const Text(
                   '?',
                   style: TextStyle(
-                    fontSize: 40,
+                    fontSize: 35,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
 import '../../widgets/victory_dialog2.dart';
-// skip-to-categories inlined below to avoid malformed widget file
+import 'package:kidtopia_app/l10n/app_localizations.dart';
 
 class FoodMemoryGame extends StatefulWidget {
   const FoodMemoryGame({super.key});
@@ -150,6 +150,8 @@ class _FoodMemoryGameState extends State<FoodMemoryGame> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       body: Stack(
         children: [
@@ -184,10 +186,10 @@ class _FoodMemoryGameState extends State<FoodMemoryGame> {
                           ),
                         ),
                         // Title
-                        const Text(
-                          '🍕 Food Memory',
-                          style: TextStyle(
-                            fontSize: 28,
+                        Text(
+                          '🍕 ${l10n.foodMemoryGame}',
+                          style: const TextStyle(
+                            fontSize: 17,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                             shadows: [
@@ -202,7 +204,7 @@ class _FoodMemoryGameState extends State<FoodMemoryGame> {
                         // Matched pairs
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
+                            horizontal: 10,
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
@@ -219,7 +221,7 @@ class _FoodMemoryGameState extends State<FoodMemoryGame> {
                           child: Text(
                             '✨ $matchedPairs/18',
                             style: const TextStyle(
-                              fontSize: 20,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -228,6 +230,7 @@ class _FoodMemoryGameState extends State<FoodMemoryGame> {
                       ],
                     ),
                   ),
+                  
                   // Game Grid
                   Expanded(
                     child: Padding(
@@ -328,7 +331,7 @@ class FoodMemoryCard extends StatelessWidget {
               ? Text(card.emoji, style: const TextStyle(fontSize: 32))
               : const Text(
                   '🍽️',
-                  style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
                 ),
         ),
       ),

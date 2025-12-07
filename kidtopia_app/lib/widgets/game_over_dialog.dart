@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import '../l10n/app_localizations.dart';
 
 class GameOverDialog extends StatefulWidget {
   final VoidCallback onPlayAgain;
@@ -44,6 +45,8 @@ class _GameOverDialogState extends State<GameOverDialog>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
       child: Dialog(
@@ -74,7 +77,6 @@ class _GameOverDialogState extends State<GameOverDialog>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Sad emoji
                 Container(
                   width: 120,
                   height: 120,
@@ -90,10 +92,9 @@ class _GameOverDialogState extends State<GameOverDialog>
                   ),
                 ),
                 const SizedBox(height: 25),
-                // Game Over Text
-                const Text(
-                  'Time\'s Up!',
-                  style: TextStyle(
+                Text(
+                  l10n.timesUp,
+                  style: const TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -108,9 +109,9 @@ class _GameOverDialogState extends State<GameOverDialog>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 15),
-                const Text(
-                  'Don\'t give up!\nTry again! 💪',
-                  style: TextStyle(
+                Text(
+                  l10n.dontGiveUp,
+                  style: const TextStyle(
                     fontSize: 20,
                     color: Colors.white,
                     fontWeight: FontWeight.w500,
@@ -119,7 +120,6 @@ class _GameOverDialogState extends State<GameOverDialog>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 35),
-                // Buttons
                 Row(
                   children: [
                     Expanded(
@@ -133,9 +133,9 @@ class _GameOverDialogState extends State<GameOverDialog>
                           ),
                           elevation: 5,
                         ),
-                        child: const Text(
-                          '🏠 Home',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.homeButton,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Colors.red,
@@ -155,9 +155,9 @@ class _GameOverDialogState extends State<GameOverDialog>
                           ),
                           elevation: 5,
                         ),
-                        child: const Text(
-                          '🔄 Play Again',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.playAgainButton,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -175,3 +175,4 @@ class _GameOverDialogState extends State<GameOverDialog>
     );
   }
 }
+

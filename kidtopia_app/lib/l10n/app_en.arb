@@ -1,0 +1,220 @@
+{
+  "@@locale": "en",
+  
+  "home": "Home",
+  "categories": "Categories",
+  "profile": "Profile",
+  "guest": "Guest",
+  
+  "readyToPlay": "Ready to Play?",
+  "showUsPowers": "Show us your powers {username}!",
+  "@showUsPowers": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "letsGo": "Let's Go",
+  
+  "premiumRequired": "Premium Required",
+  "unlockCategory": "Unlock this category with Premium subscription!",
+  "maybeLater": "Maybe Later",
+  "getPremium": "Get Premium",
+  
+  "scoreRequired": "Score Required",
+  "needPoints": "You need {requiredScore} points to unlock {categoryName}!",
+  "@needPoints": {
+    "placeholders": {
+      "requiredScore": {
+        "type": "int"
+      },
+      "categoryName": {
+        "type": "String"
+      }
+    }
+  },
+  "earnMorePoints": "Earn {points} more points.",
+  "@earnMorePoints": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "ok": "OK",
+  "keepPlaying": "Keep Playing",
+  
+  "loadingCategories": "Loading categories...",
+  "retry": "Retry",
+  "noCategoriesYet": "No Categories Yet",
+  "categoriesWillAppear": "Categories will appear here once added to the database",
+  "refresh": "Refresh",
+  "ptsRequired": "{points} pts required",
+  "@ptsRequired": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "premium": "Premium",
+  
+  "becomePro": "Become a pro member",
+  "premiumMember": "Premium Member",
+  "freeMember": "Free Member",
+  "logout": "Logout",
+  "points": "Points",
+  "bestGames": "Best games",
+  "unlocked": "Unlocked",
+  "myScore": "My score",
+  "scorePoints": "{score} points",
+  "@scorePoints": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "paymentSettings": "Payment settings",
+  "paymentComingSoon": "Payment settings coming soon!",
+  "nowPremium": "You are now a premium member!",
+  
+  "loadingQuestions": "Loading questions from database...",
+  "noQuestionsAvailable": "No Questions Available",
+  "questionsNeeded": "Questions need to be added to the database for this category.",
+  "chooseAnotherCategory": "Choose Another Category",
+  "question": "Question",
+  "questionOf": "Question {current} of {total}",
+  "@questionOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "addPoints": "+{points} points",
+  "@addPoints": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "noAnswersFound": "No answers found for this question",
+  "checkAnswer": "Check Answer",
+  "correctAnswer": "Correct! +{points} points",
+  "@correctAnswer": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongAnswer": "Wrong answer!",
+  "chooseCategory": "Choose Category",
+  
+  "changeLanguage": "Change Language",
+  "selectLanguage": "Select Language",
+  "english": "English",
+  "french": "French",
+  "arabic": "Arabic",
+  
+  "scoreScreenTitle": "Excellent!",
+  "greatJob": "Great Job!",
+  "goodTry": "Good Try!",
+  "keepPracticing": "Keep Practicing!",
+  "pointsEarned": "points",
+  "correct": "Correct",
+  "totalScore": "Total Score",
+  "nextGameIn": "Next game in {seconds} seconds...",
+  "@nextGameIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "scoreToUnlock": "Score 7+ to unlock a mini-game!",
+  "playAgain": "Play Again",
+  "nextNow": "Next Now",
+  "noReward": "No Reward",
+  "goHome": "Go Home",
+  
+  "signIn": "Sign In",
+  "signUp": "Sign Up",
+  "kidtopia": "Kidtopia",
+  "welcomeBack": "Welcome Back!",
+  "letsPlayAgain": "Let's play again!",
+  "createAccount": "Create an Account",
+  "letsGetStarted": "Let's get you started!",
+  "username": "Username",
+  "password": "Password",
+  "confirmPassword": "Confirm Password",
+  "enterUsername": "Enter your username",
+  "enterPassword": "Enter your password",
+  "createUsername": "Create a username",
+  "createPassword": "Create a password",
+  "reenterPassword": "Re-enter your password",
+  "forgotPassword": "Forgot Password?",
+  "passwordResetSoon": "Password reset coming soon!",
+  "dontHaveAccount": "Don't have an account?",
+  "alreadyHaveAccount": "Already have an account?",
+  "pleaseEnterUsername": "Please enter your username",
+  "pleaseEnterPassword": "Please enter your password",
+  "pleaseConfirmPassword": "Please confirm your password",
+  "usernameMinLength": "Username must be at least 3 characters",
+  "passwordMinLength": "Password must be at least 4 characters",
+  "passwordsDoNotMatch": "Passwords do not match",
+  
+  "timesUp": "Time's Up!",
+  "dontGiveUp": "Don't give up!\nTry again! 💪",
+  "goodJobVictory": "Good Job!",
+  "youSolvedGame": "You solved the game!",
+  "youWin": "🎉 YOU WIN! 🎉",
+  "amazingMemory": "Amazing Memory!",
+  "playAgainButton": "🔄 Play Again",
+  "homeButton": "🏠 Home",
+  
+  "initializationError": "Initialization Error",
+  "learningMadeFun": "Learning made fun!",
+  "initializing": "Initializing...",
+  
+  "level": "Level",
+  "levelComplete": "Level Complete!",
+  "nextLevel": "Next Level",
+  
+  "petCareGame": "Pet Care Game",
+  "time": "Time",
+  "happiness": "Happiness",
+  "fullness": "Fullness",
+  "play": "Play",
+  "pet": "Pet",
+  "tryAgain": "Try Again!",
+  "startGame": "Start Game!",
+  "ohNo": "Oh No!",
+  "petGameOverMessage": "Your pet got too sad or hungry!\nTry to keep both bars above 90%!",
+  "feedYourPet": "Feed Your Pet",
+  "chooseYourPet": "Choose Your Pet",
+  "howToWin": "How to Win:",
+  "petGameInstructions": "🎯 Goal: Keep your pet happy and fed for 60 seconds!\n\n✅ Win: Both bars stay above 90%\n❌ Lose: Any bar reaches 0%\n\n💡 Tips:\n• Feed often to keep fullness up\n• Play and pet for happiness\n• Playing makes pet hungry!\n• Different foods give different boosts",
+  
+  "rainbowMonsterCollector": "Rainbow Monster Collector",
+  "customizeGame": "Customize Your Game!",
+  "chooseMonsterType": "Choose Monster Type:",
+  "chooseBackground": "Choose Background:",
+  "howToPlay": "How to Play:",
+  "monsterGameGoal": "🎯 Goal: Score {score} points to win!",
+  "monsterGameInstructions": "👆 Tap bouncing monsters to catch them (10 points each).\n⏰ You have 60 seconds. Good luck! 🎈",
+  
+  "waterSortGame": "Water Sort Game",
+  "waterSortMessage": "Don't let them stay empty! 💧",
+  
+  "memoryGame": "Memory Game",
+  "foodMemoryGame": "Food Memory Game",
+
+  "skip": "Skip"
+}

@@ -3,7 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'dart:async';
 import '../../widgets/victory_dialog.dart';
 import '../../widgets/game_over_dialog.dart';
-// skip-to-categories inlined below to avoid malformed widget file
+import 'package:kidtopia_app/l10n/app_localizations.dart';
 
 class MatchingGame extends StatefulWidget {
   const MatchingGame({super.key});
@@ -295,6 +295,8 @@ class _MatchingGameState extends State<MatchingGame>
   }
 
   void _showLevelComplete() {
+    final l10n = AppLocalizations.of(context)!;
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -311,12 +313,12 @@ class _MatchingGameState extends State<MatchingGame>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('🎉', style: TextStyle(fontSize: 80)),
+              const Text('🎉', style: TextStyle(fontSize: 60)),
               const SizedBox(height: 20),
-              const Text(
-                'Level Complete!',
-                style: TextStyle(
-                  fontSize: 36,
+              Text(
+                l10n.levelComplete,
+                style: const TextStyle(
+                  fontSize: 30,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -340,10 +342,10 @@ class _MatchingGameState extends State<MatchingGame>
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: const Text(
-                  'Next Level! 🚀',
-                  style: TextStyle(
-                    fontSize: 24,
+                child: Text(
+                  '${l10n.nextLevel} 🚀',
+                  style: const TextStyle(
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
                   ),
@@ -449,6 +451,8 @@ class _MatchingGameState extends State<MatchingGame>
   }
 
   Widget _buildHeader() {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -468,7 +472,7 @@ class _MatchingGameState extends State<MatchingGame>
                 Text(
                   '$timeLeft',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 23,
                     fontWeight: FontWeight.bold,
                     color: timeLeft <= 10 ? Colors.red : Colors.purple,
                   ),
@@ -484,9 +488,9 @@ class _MatchingGameState extends State<MatchingGame>
               boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
             ),
             child: Text(
-              'Level $level',
+              '${l10n.level} $level',
               style: const TextStyle(
-                fontSize: 24,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.blue,
               ),
@@ -527,7 +531,7 @@ class _MatchingGameState extends State<MatchingGame>
                   boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 15)],
                 ),
                 child: Center(
-                  child: Text(item.emoji, style: const TextStyle(fontSize: 50)),
+                  child: Text(item.emoji, style: const TextStyle(fontSize: 40)),
                 ),
               ),
             ),
@@ -545,7 +549,7 @@ class _MatchingGameState extends State<MatchingGame>
                 boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
               ),
               child: Center(
-                child: Text(item.emoji, style: const TextStyle(fontSize: 60)),
+                child: Text(item.emoji, style: const TextStyle(fontSize: 40)),
               ),
             ),
           );
@@ -607,12 +611,12 @@ class _MatchingGameState extends State<MatchingGame>
                             children: [
                               Text(
                                 basket.emoji,
-                                style: const TextStyle(fontSize: 32),
+                                style: const TextStyle(fontSize: 30),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 basket.label,
-                                style: const TextStyle(fontSize: 24),
+                                style: const TextStyle(fontSize: 20),
                               ),
                             ],
                           ),

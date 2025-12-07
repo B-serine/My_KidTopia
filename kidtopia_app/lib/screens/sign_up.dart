@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../assets/app_colors/app_colors.dart';
 import '../logic/cubits/auth_cubit.dart';
+import '../l10n/app_localizations.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -28,11 +29,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _handleSignUp() {
+    final l10n = AppLocalizations.of(context)!;
+    
     if (_formKey.currentState!.validate()) {
       if (_passwordController.text != _confirmPasswordController.text) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Passwords do not match'),
+            content: Text(l10n.passwordsDoNotMatch),
             backgroundColor: brandRed,
           ),
         );
@@ -47,6 +50,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
@@ -73,7 +78,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'Kidtopia',
+                        l10n.kidtopia,
                         style: TextStyle(
                           fontSize: 40,
                           fontWeight: FontWeight.bold,
@@ -82,7 +87,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Create an Account',
+                        l10n.createAccount,
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -91,17 +96,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "Let's get you started!",
+                        l10n.letsGetStarted,
                         style: TextStyle(fontSize: 16, color: brandTextLight),
                       ),
                       const SizedBox(height: 24),
 
-                      // Username Field
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Username',
+                            l10n.username,
                             style: TextStyle(color: brandTextDark),
                           ),
                           const SizedBox(height: 8),
@@ -109,9 +113,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             controller: _usernameController,
                             validator: (value) {
                               if (value == null || value.isEmpty)
-                                return 'Please enter a username';
+                                return l10n.pleaseEnterUsername;
                               if (value.length < 3)
-                                return 'Username must be at least 3 characters';
+                                return l10n.usernameMinLength;
                               return null;
                             },
                             decoration: InputDecoration(
@@ -119,7 +123,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 Icons.person,
                                 color: brandTextLight,
                               ),
-                              hintText: 'Create a username',
+                              hintText: l10n.createUsername,
                               filled: true,
                               fillColor: brandWhite,
                               border: OutlineInputBorder(
@@ -135,12 +139,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Password Field
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Password',
+                            l10n.password,
                             style: TextStyle(color: brandTextDark),
                           ),
                           const SizedBox(height: 8),
@@ -149,9 +152,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             obscureText: !_isPasswordVisible,
                             validator: (value) {
                               if (value == null || value.isEmpty)
-                                return 'Please enter a password';
+                                return l10n.pleaseEnterPassword;
                               if (value.length < 4)
-                                return 'Password must be at least 4 characters';
+                                return l10n.passwordMinLength;
                               return null;
                             },
                             decoration: InputDecoration(
@@ -171,7 +174,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       _isPasswordVisible = !_isPasswordVisible,
                                 ),
                               ),
-                              hintText: 'Create a password',
+                              hintText: l10n.createPassword,
                               filled: true,
                               fillColor: brandWhite,
                               border: OutlineInputBorder(
@@ -187,12 +190,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Confirm Password Field
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Confirm Password',
+                            l10n.confirmPassword,
                             style: TextStyle(color: brandTextDark),
                           ),
                           const SizedBox(height: 8),
@@ -201,7 +203,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             obscureText: !_isConfirmPasswordVisible,
                             validator: (value) {
                               if (value == null || value.isEmpty)
-                                return 'Please confirm your password';
+                                return l10n.pleaseConfirmPassword;
                               return null;
                             },
                             decoration: InputDecoration(
@@ -221,7 +223,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       !_isConfirmPasswordVisible,
                                 ),
                               ),
-                              hintText: 'Re-enter your password',
+                              hintText: l10n.reenterPassword,
                               filled: true,
                               fillColor: brandWhite,
                               border: OutlineInputBorder(
@@ -237,7 +239,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Sign Up Button
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brandPurple,
@@ -258,26 +259,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text(
-                                'Sign Up',
-                                style: TextStyle(fontSize: 18),
+                            : Text(
+                                l10n.signUp,
+                                style: const TextStyle(fontSize: 18),
                               ),
                       ),
                       const SizedBox(height: 16),
 
-                      // Sign In Link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Already have an account?',
+                            l10n.alreadyHaveAccount,
                             style: TextStyle(color: brandTextDark),
                           ),
                           TextButton(
                             onPressed: () =>
                                 Navigator.pushNamed(context, '/sign_in'),
                             child: Text(
-                              'Sign In',
+                              l10n.signIn,
                               style: TextStyle(color: brandPurple),
                             ),
                           ),

@@ -3,23 +3,51 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../assets/app_colors/app_colors.dart';
 import '../logic/cubits/quiz_cubit.dart';
 import '../logic/cubits/auth_cubit.dart';
-
+import '../l10n/app_localizations.dart';
 class QuizScreen extends StatelessWidget {
   const QuizScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return BlocConsumer<QuizCubit, QuizState>(
-      listener: (context, state) {
-        if (state is QuizCompleted) {
-          // Update user score in database
-          context.read<AuthCubit>().updateUserScore(state.finalScore);
-          // Navigate to score screen
-          Navigator.pushReplacementNamed(context, '/score');
-        }
+  listener: (context, state) {
+  print('🔵 QuizScreen listener - State: $state');
+  
+  if (state is QuizCompleted) {
+    print('✅ Quiz Completed!');
+    print('   Final Score: ${state.finalScore}');
+    print('   Correct Answers: ${state.correctAnswers}');
+    print('   Total Questions: ${state.totalQuestions}');
+    
+    // Update user score in database
+    context.read<AuthCubit>().updateUserScore(state.finalScore);
+    
+    print('🚀 Navigating to /score with arguments...');
+    
+    // Pass quiz results as navigation arguments
+    Navigator.pushReplacementNamed(
+      context, 
+      '/score',
+      arguments: {
+        'finalScore': state.finalScore,
+        'totalQuestions': state.totalQuestions,
+        'correctAnswers': state.correctAnswers,
+        'starCount': state.starCount,
       },
+    );
+  
+  }
+
+
+      },
+
+
+
+
+      
       builder: (context, state) {
-        // Loading state - fetching from database
         if (state is QuizLoading) {
           return Scaffold(
             backgroundColor: brandBackground,
@@ -29,14 +57,13 @@ class QuizScreen extends StatelessWidget {
                 children: [
                   CircularProgressIndicator(color: brandPurple),
                   const SizedBox(height: 16),
-                  Text('Loading questions from database...', style: TextStyle(color: brandTextLight, fontSize: 16)),
+                  Text(l10n.loadingQuestions, style: TextStyle(color: brandTextLight, fontSize: 16)),
                 ],
               ),
             ),
           );
         }
 
-        // Error state - no questions found in database
         if (state is QuizError) {
           return Scaffold(
             backgroundColor: brandBackground,
@@ -60,7 +87,7 @@ class QuizScreen extends StatelessWidget {
                     Icon(Icons.quiz_outlined, size: 80, color: brandTextLight.withOpacity(0.5)),
                     const SizedBox(height: 24),
                     Text(
-                      'No Questions Available',
+                      l10n.noQuestionsAvailable,
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: brandTextDark),
                     ),
                     const SizedBox(height: 12),
@@ -71,7 +98,7 @@ class QuizScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Questions need to be added to the database for this category.',
+                      l10n.questionsNeeded,
                       style: TextStyle(color: brandTextLight, fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
@@ -82,7 +109,7 @@ class QuizScreen extends StatelessWidget {
                         Navigator.pop(context);
                       },
                       icon: const Icon(Icons.arrow_back),
-                      label: const Text('Choose Another Category'),
+                      label: Text(l10n.chooseAnotherCategory),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: brandPurple,
                         foregroundColor: brandWhite,
@@ -97,7 +124,6 @@ class QuizScreen extends StatelessWidget {
           );
         }
 
-        // Quiz ready state - questions fetched from database
         if (state is QuizReady) {
           final question = state.currentQuestion;
           final answers = state.currentAnswers;
@@ -118,7 +144,6 @@ class QuizScreen extends StatelessWidget {
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Progress indicator
                   Expanded(
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -139,7 +164,6 @@ class QuizScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Score badge
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
@@ -162,14 +186,12 @@ class QuizScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    // Question number
                     Text(
-                      'Question ${state.currentIndex + 1} of ${state.totalQuestions}',
+                      l10n.questionOf(state.currentIndex + 1, state.totalQuestions),
                       style: TextStyle(color: brandTextLight, fontSize: 14),
                     ),
                     const SizedBox(height: 20),
 
-                    // Question image from database
                     if (question.imageUrl != null && question.imageUrl!.isNotEmpty)
                       Container(
                         height: 180,
@@ -200,7 +222,6 @@ class QuizScreen extends StatelessWidget {
                       ),
                     const SizedBox(height: 24),
 
-                    // Question text from database
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -230,7 +251,7 @@ class QuizScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              '+${question.points} points',
+                              l10n.addPoints(question.points),
                               style: TextStyle(color: brandPurple, fontSize: 12, fontWeight: FontWeight.w600),
                             ),
                           ),
@@ -239,12 +260,11 @@ class QuizScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    // Answer buttons from database
                     Expanded(
                       child: answers.isEmpty
                           ? Center(
                               child: Text(
-                                'No answers found for this question',
+                                l10n.noAnswersFound,
                                 style: TextStyle(color: brandTextLight),
                               ),
                             )
@@ -327,7 +347,6 @@ class QuizScreen extends StatelessWidget {
                             ),
                     ),
 
-                    // Check Answer button
                     if (!state.answered && state.selectedAnswerId != null)
                       ElevatedButton(
                         onPressed: () => context.read<QuizCubit>().checkAnswer(),
@@ -338,10 +357,9 @@ class QuizScreen extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           elevation: 4,
                         ),
-                        child: const Text('Check Answer', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        child: Text(l10n.checkAnswer, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       ),
 
-                    // Feedback after answering
                     if (state.answered)
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -360,7 +378,7 @@ class QuizScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              state.lastAnswerCorrect == true ? 'Correct! +${question.points} points' : 'Wrong answer!',
+                              state.lastAnswerCorrect == true ? l10n.correctAnswer(question.points) : l10n.wrongAnswer,
                               style: TextStyle(
                                 color: state.lastAnswerCorrect == true ? Colors.green : brandRed,
                                 fontWeight: FontWeight.bold,
@@ -377,7 +395,6 @@ class QuizScreen extends StatelessWidget {
           );
         }
 
-        // Initial state - no quiz loaded yet
         return Scaffold(
           backgroundColor: brandBackground,
           appBar: AppBar(
@@ -397,19 +414,19 @@ class QuizScreen extends StatelessWidget {
                   Icon(Icons.quiz, size: 80, color: brandPurple.withOpacity(0.5)),
                   const SizedBox(height: 24),
                   Text(
-                    'Ready to Play?',
+                    l10n.readyToPlay,
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: brandTextDark),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Select a category to start the quiz',
+                    l10n.categoriesWillAppear,
                     style: TextStyle(color: brandTextLight, fontSize: 16),
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.category),
-                    label: const Text('Choose Category'),
+                    label: Text(l10n.chooseCategory),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: brandPurple,
                       foregroundColor: brandWhite,

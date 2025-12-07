@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import '../l10n/app_localizations.dart';
+
+
 
 class VictoryDialog extends StatefulWidget {
   final VoidCallback onComplete;
@@ -30,7 +33,6 @@ class _VictoryDialogState extends State<VictoryDialog>
 
     _controller.forward();
 
-    // Auto dismiss after 6 seconds and navigate to home
     Future.delayed(const Duration(seconds: 6), () {
       if (mounted) {
         widget.onComplete();
@@ -46,6 +48,8 @@ class _VictoryDialogState extends State<VictoryDialog>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
       child: Dialog(
@@ -76,7 +80,6 @@ class _VictoryDialogState extends State<VictoryDialog>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Trophy/Star Icon in the middle
                 Container(
                   width: 120,
                   height: 120,
@@ -98,10 +101,9 @@ class _VictoryDialogState extends State<VictoryDialog>
                   ),
                 ),
                 const SizedBox(height: 30),
-                // Victory Text below the icon
-                const Text(
-                  'Good Job!',
-                  style: TextStyle(
+                Text(
+                  l10n.goodJobVictory,
+                  style: const TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -116,9 +118,9 @@ class _VictoryDialogState extends State<VictoryDialog>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 15),
-                const Text(
-                  'You solved the game!',
-                  style: TextStyle(
+                Text(
+                  l10n.youSolvedGame,
+                  style: const TextStyle(
                     fontSize: 20,
                     color: Colors.white,
                     fontWeight: FontWeight.w500,
@@ -126,7 +128,6 @@ class _VictoryDialogState extends State<VictoryDialog>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
-                // Animated stars
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(3, (index) {
