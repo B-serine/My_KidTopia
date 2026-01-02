@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "793550015462",
+    "project_id": "kidtopia-8dffe",
+    "storage_bucket": "kidtopia-8dffe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:793550015462:android:e41fe2b09327aa8d026427",
+        "android_client_info": {
+          "package_name": "com.example.kidtopia_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXMp-uk51FzIf65yMjhNCjJlJks1yRuas"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
