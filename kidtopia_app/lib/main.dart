@@ -1,7 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
+import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
 
 // Database
@@ -39,11 +47,44 @@ import 'screens/games/MatchingGame.dart';
 // App colors
 import 'assets/app_colors/app_colors.dart';
 
-void main() {
+// Background message handler (must be top-level function)
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print("Background message: ${message.notification?.title}");
+}
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  DatabaseHelper.initializeDatabaseFactory();
+
+  // Initialize SQLite for desktop platforms
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
+  // 1. Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // 2. Initialize Crashlytics
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+  // 3. Initialize FCM background handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // 4. Initialize Supabase
+  await Supabase.initialize(
+    url: 'https://dwfrpbgpqzhjn.supabase.co',
+    anonKey: 'sb_publishable_jQx7zwFRf5FiNtgDlYw82w_w1Hk9AsR', // Replace with your Supabase key
+  );
+
   runApp(const KidtopiaApp());
 }
+
+// Global Supabase client access
+final supabase = Supabase.instance.client;
 
 class KidtopiaApp extends StatelessWidget {
   const KidtopiaApp({super.key});
@@ -75,6 +116,10 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
     try {
       await DatabaseHelper.instance.database;
       await DatabaseHelper.instance.seedFromAssetsIfEmpty();
+      
+      // Request notification permissions
+      await _setupNotifications();
+      
       await Future.delayed(const Duration(milliseconds: 500));
 
       if (mounted) {
@@ -88,6 +133,47 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
           _errorMessage = 'Failed to initialize database: ${e.toString()}';
         });
       }
+    }
+  }
+
+  Future<void> _setupNotifications() async {
+    try {
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+      // Request permission
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      print('Notification permission: ${settings.authorizationStatus}');
+
+      // Get FCM token
+      String? token = await messaging.getToken();
+      print('FCM Token: $token');
+
+      // Save token to Supabase if user is logged in
+      final userId = supabase.auth.currentUser?.id;
+      if (token != null && userId != null) {
+        await supabase.from('profiles').update({
+          'fcm_token': token,
+        }).eq('id', userId);
+      }
+
+      // Listen to foreground messages
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        print('Foreground message: ${message.notification?.title}');
+        // You can show a local notification here
+      });
+
+      // Handle when app is opened from notification
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        print('App opened from notification: ${message.data}');
+        // Navigate based on message data
+      });
+    } catch (e) {
+      print('Error setting up notifications: $e');
     }
   }
 
@@ -108,7 +194,6 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: brandBackground,
@@ -269,19 +354,19 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
               title: 'Kidtopia',
               initialRoute: '/sign_up',
               routes: {
-             '/': (context) => const HomeScreen(),
-              '/sign_up': (context) => const SignUpScreen(),
-              '/categories': (context) => const CategoriesScreen(),
-              '/quiz': (context) => const QuizScreen(),
-              '/sign_in': (context) => const SignInScreen(),
-              '/score': (context) => const ScoreScreen(),
-              '/profile': (context) => const ProfileScreen(),
-              '/food_memory_game': (context) => const FoodMemoryGame(),
-              '/matching_game': (context) => const MatchingGame(),
-              '/memory_card_game': (context) => const MemoryCardGame(),
-              '/pet_feeding_game': (context) => const PetFeedingGame(),
-              '/rainbow_monster_game': (context) => const RainbowMonsterGame(),
-              '/water_sort_game': (context) => const WaterSortGame(),
+                '/': (context) => const HomeScreen(),
+                '/sign_up': (context) => const SignUpScreen(),
+                '/categories': (context) => const CategoriesScreen(),
+                '/quiz': (context) => const QuizScreen(),
+                '/sign_in': (context) => const SignInScreen(),
+                '/score': (context) => const ScoreScreen(),
+                '/profile': (context) => const ProfileScreen(),
+                '/food_memory_game': (context) => const FoodMemoryGame(),
+                '/matching_game': (context) => const MatchingGame(),
+                '/memory_card_game': (context) => const MemoryCardGame(),
+                '/pet_feeding_game': (context) => const PetFeedingGame(),
+                '/rainbow_monster_game': (context) => const RainbowMonsterGame(),
+                '/water_sort_game': (context) => const WaterSortGame(),
               },
             );
           },
