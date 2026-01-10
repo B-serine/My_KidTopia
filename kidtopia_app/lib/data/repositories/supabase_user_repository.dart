@@ -6,13 +6,6 @@ import 'package:kidtopia_app/models/profile.dart';
 import 'package:kidtopia_app/data/repositories/user_repository.dart';
 import 'package:kidtopia_app/core/auth_utils.dart';
 
-final _supabase = Supabase.instance.client; // kept for backward compat
-
-import 'package:postgrest/postgrest.dart' show PostgrestException;
-import 'package:kidtopia_app/data/models/result.dart';
-import 'package:kidtopia_app/models/profile.dart';
-import 'package:kidtopia_app/data/repositories/user_repository.dart';
-
 final _supabase = Supabase.instance.client;
 
 class SupabaseUserRepository {
@@ -384,22 +377,8 @@ class SupabaseUserRepository {
     }
   }
 
-// Helpers: hashing and verification moved to AuthUtils
-   // Use AuthUtils.hashPassword(...) and AuthUtils.verifyPassword(...) where needed
-   
-   // Retry helper for transient network errors
-   Future<T> _retry<T>(Future<T> Function() fn, {int retries = 3}) async {
-     int attempt = 0;
-     while (true) {
-       try {
-         return await fn();
-       } on SocketException catch (e) {
-         attempt += 1;
-         if (attempt >= retries) rethrow;
-         await Future.delayed(Duration(seconds: attempt));
-       }
-     }
-  }
+  // Helpers: hashing and verification moved to AuthUtils
+  // Use AuthUtils.hashPassword(...) and AuthUtils.verifyPassword(...) where needed
 
   // Retry helper for transient network errors
   Future<T> _retry<T>(Future<T> Function() fn, {int retries = 3}) async {

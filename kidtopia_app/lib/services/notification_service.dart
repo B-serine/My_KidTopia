@@ -100,9 +100,18 @@ class NotificationService {
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings();
+    const windowsInit = WindowsInitializationSettings(
+      appName: 'Kidtopia',
+      appUserModelId: 'com.kidtopia.app',
+      guid: '3f2a3c1d-8f2b-4b2a-9a3d-1234567890ab',
+    );
     try {
       await _flutterLocalNotificationsPlugin.initialize(
-        const InitializationSettings(android: androidInit, iOS: iosInit),
+        const InitializationSettings(
+          android: androidInit,
+          iOS: iosInit,
+          windows: windowsInit,
+        ),
         onDidReceiveNotificationResponse: (details) {
           try {
             final data = details.payload != null
