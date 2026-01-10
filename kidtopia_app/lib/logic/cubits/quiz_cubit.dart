@@ -1,8 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/question.dart';
-import '../../data/models/answer.dart';
-import '../../data/repositories/question_repository.dart';
-import '../../data/repositories/answer_repository.dart';
+import '../../data/models/quiz.dart';
+import '../../data/repositories/quiz_repository.dart';
 
 // ==================== STATES ====================
 abstract class QuizState {}
@@ -12,44 +10,42 @@ class QuizInitial extends QuizState {}
 class QuizLoading extends QuizState {}
 
 class QuizReady extends QuizState {
-  final List<Question> questions;
-  final Map<int, List<Answer>> answersMap;
+  final List<Quiz> quizzes;
   final int currentIndex;
   final int score;
-  final int? selectedAnswerId;
+  final Set<int> selectedAnswers; // Set of selected answer indices (1-4)
   final bool answered;
   final bool? lastAnswerCorrect;
 
   QuizReady({
-    required this.questions,
-    required this.answersMap,
+    required this.quizzes,
     this.currentIndex = 0,
     this.score = 0,
-    this.selectedAnswerId,
+    Set<int>? selectedAnswers,
     this.answered = false,
     this.lastAnswerCorrect,
-  });
+  }) : selectedAnswers = selectedAnswers ?? {};
 
-  Question get currentQuestion => questions[currentIndex];
-  List<Answer> get currentAnswers => answersMap[currentQuestion.id] ?? [];
-  int get totalQuestions => questions.length;
-  bool get isLastQuestion => currentIndex >= questions.length - 1;
+  Quiz get currentQuiz => quizzes[currentIndex];
+  int get totalQuestions => quizzes.length;
+  bool get isLastQuestion => currentIndex >= quizzes.length - 1;
+  
+  // Check if current question has multiple correct answers
+  bool get isMultipleChoice => currentQuiz.isMultipleChoice;
 
   QuizReady copyWith({
-    List<Question>? questions,
-    Map<int, List<Answer>>? answersMap,
+    List<Quiz>? quizzes,
     int? currentIndex,
     int? score,
-    int? selectedAnswerId,
+    Set<int>? selectedAnswers,
     bool? answered,
     bool? lastAnswerCorrect,
   }) {
     return QuizReady(
-      questions: questions ?? this.questions,
-      answersMap: answersMap ?? this.answersMap,
+      quizzes: quizzes ?? this.quizzes,
       currentIndex: currentIndex ?? this.currentIndex,
       score: score ?? this.score,
-      selectedAnswerId: selectedAnswerId ?? this.selectedAnswerId,
+      selectedAnswers: selectedAnswers ?? this.selectedAnswers,
       answered: answered ?? this.answered,
       lastAnswerCorrect: lastAnswerCorrect ?? this.lastAnswerCorrect,
     );
@@ -83,65 +79,90 @@ class QuizError extends QuizState {
 
 // ==================== CUBIT ====================
 class QuizCubit extends Cubit<QuizState> {
-  final QuestionRepository _questionRepository;
-  final AnswerRepository _answerRepository;
+  final QuizRepository _quizRepository;
   int _correctCount = 0;
 
-  QuizCubit(this._questionRepository, this._answerRepository)
-    : super(QuizInitial());
+  QuizCubit(this._quizRepository) : super(QuizInitial());
 
   Future<void> loadQuiz(int categoryId, {int limit = 10}) async {
     emit(QuizLoading());
     _correctCount = 0;
+    
     try {
-      final questions = await _questionRepository.getRandomQuestions(
+      // Fetch random quizzes from Supabase
+      final quizzes = await _quizRepository.getRandomQuizzes(
         categoryId,
-        limit,
+        limit: limit,
       );
 
-      // Require exactly `limit` questions for a full quiz.
-      if (questions.length < limit) {
-        emit(QuizError('Not enough questions for this category (need $limit)'));
+      // Require at least some questions for a quiz
+      if (quizzes.isEmpty) {
+        emit(QuizError('No questions available for this category'));
         return;
       }
 
-      // Shuffle questions
-      questions.shuffle();
-
-      final Map<int, List<Answer>> answersMap = {};
-      for (final question in questions) {
-        final answers = await _answerRepository.getByQuestion(question.id!);
-        // Shuffle answers for each question
-        answers.shuffle();
-        answersMap[question.id!] = answers;
+      // If we have fewer than limit, that's okay - use what we have
+      if (quizzes.length < limit) {
+        print('Note: Only ${quizzes.length} questions available (requested $limit)');
       }
 
-      emit(QuizReady(questions: questions, answersMap: answersMap));
+      // Shuffle questions for variety
+      quizzes.shuffle();
+
+      emit(QuizReady(quizzes: quizzes));
     } catch (e) {
       emit(QuizError('Failed to load quiz: ${e.toString()}'));
     }
   }
 
-  void selectAnswer(int answerId) {
+  // Toggle answer selection (for multiple choice)
+  void toggleAnswer(int answerIndex) {
     final currentState = state;
     if (currentState is QuizReady && !currentState.answered) {
-      emit(currentState.copyWith(selectedAnswerId: answerId));
+      final newSelected = Set<int>.from(currentState.selectedAnswers);
+      
+      if (currentState.isMultipleChoice) {
+        // Multiple choice - toggle selection
+        if (newSelected.contains(answerIndex)) {
+          newSelected.remove(answerIndex);
+        } else {
+          newSelected.add(answerIndex);
+        }
+      } else {
+        // Single choice - replace selection
+        newSelected.clear();
+        newSelected.add(answerIndex);
+      }
+      
+      emit(currentState.copyWith(selectedAnswers: newSelected));
+    }
+  }
+
+  // Select single answer (for backward compatibility)
+  void selectAnswer(int answerIndex) {
+    final currentState = state;
+    if (currentState is QuizReady && !currentState.answered) {
+      final newSelected = <int>{answerIndex};
+      emit(currentState.copyWith(selectedAnswers: newSelected));
     }
   }
 
   Future<void> checkAnswer() async {
     final currentState = state;
-    if (currentState is! QuizReady || currentState.selectedAnswerId == null)
+    if (currentState is! QuizReady || currentState.selectedAnswers.isEmpty) {
       return;
+    }
 
     try {
-      final isCorrect = await _answerRepository.isCorrect(
-        currentState.selectedAnswerId!,
-      );
+      final quiz = currentState.currentQuiz;
+      final selectedList = currentState.selectedAnswers.toList();
+      
+      // Check if selected answers match correct answers
+      final isCorrect = quiz.checkAnswers(selectedList);
       int newScore = currentState.score;
 
       if (isCorrect) {
-        newScore += currentState.currentQuestion.points;
+        newScore += quiz.points;
         _correctCount++;
       }
 
@@ -153,6 +174,7 @@ class QuizCubit extends Cubit<QuizState> {
         ),
       );
 
+      // Wait before moving to next question
       await Future.delayed(const Duration(milliseconds: 1200));
 
       if (currentState.isLastQuestion) {
@@ -166,11 +188,10 @@ class QuizCubit extends Cubit<QuizState> {
       } else {
         emit(
           QuizReady(
-            questions: currentState.questions,
-            answersMap: currentState.answersMap,
+            quizzes: currentState.quizzes,
             currentIndex: currentState.currentIndex + 1,
             score: newScore,
-            selectedAnswerId: null,
+            selectedAnswers: {},
             answered: false,
           ),
         );

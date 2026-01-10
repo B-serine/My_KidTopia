@@ -1,9 +1,6 @@
 import 'dart:io';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:flutter/foundation.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -32,25 +29,9 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3, // Incremented version for new schema
       onCreate: _createDB,
-      onUpgrade: (db, oldV, newV) async {
-        // migrate existing DB: add password column to users if missing
-        try {
-          await db.execute("ALTER TABLE users ADD COLUMN password TEXT");
-        } catch (_) {}
-        try {
-          await db.execute(
-            'CREATE INDEX IF NOT EXISTS idx_questions_category ON questions(category_id)',
-          );
-          await db.execute(
-            'CREATE INDEX IF NOT EXISTS idx_answers_question ON answers(question_id)',
-          );
-          await db.execute(
-            'CREATE INDEX IF NOT EXISTS idx_categories_active ON categories(is_active)',
-          );
-        } catch (_) {}
-      },
+      onUpgrade: _onUpgrade,
       onOpen: (db) async {
         try {
           await db.execute('PRAGMA foreign_keys = ON');
@@ -58,6 +39,49 @@ class DatabaseHelper {
         } catch (_) {}
       },
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 3) {
+      // Drop old tables
+      try {
+        await db.execute('DROP TABLE IF EXISTS answers');
+        await db.execute('DROP TABLE IF EXISTS questions');
+      } catch (_) {}
+
+      // Create new quizzes table
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS quizzes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          category_id INTEGER NOT NULL,
+          question_text TEXT NOT NULL,
+          image_url TEXT,
+          answer1 TEXT NOT NULL,
+          answer2 TEXT NOT NULL,
+          answer3 TEXT NOT NULL,
+          answer4 TEXT NOT NULL,
+          correct_answers TEXT NOT NULL DEFAULT '1',
+          points INTEGER DEFAULT 10,
+          level INTEGER DEFAULT 1,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
+        )
+      ''');
+
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_quizzes_category ON quizzes(category_id)',
+      );
+
+      // Seed quizzes data
+      await _seedQuizzes(db);
+    }
+
+    // Handle password column migration from earlier versions
+    if (oldVersion < 2) {
+      try {
+        await db.execute("ALTER TABLE users ADD COLUMN password TEXT");
+      } catch (_) {}
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -90,34 +114,43 @@ class DatabaseHelper {
       )
     ''');
 
-    // Questions table
+    // NEW: Quizzes table (replaces questions + answers)
     await db.execute('''
-      CREATE TABLE questions (
+      CREATE TABLE quizzes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         category_id INTEGER NOT NULL,
         question_text TEXT NOT NULL,
         image_url TEXT,
-        level INTEGER DEFAULT 1,
+        answer1 TEXT NOT NULL,
+        answer2 TEXT NOT NULL,
+        answer3 TEXT NOT NULL,
+        answer4 TEXT NOT NULL,
+        correct_answers TEXT NOT NULL DEFAULT '1',
         points INTEGER DEFAULT 10,
+        level INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
       )
     ''');
 
-    // Answers table
-    await db.execute('''
-      CREATE TABLE answers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        question_id INTEGER NOT NULL,
-        answer_text TEXT NOT NULL,
-        is_correct INTEGER DEFAULT 0,
-        display_order INTEGER DEFAULT 0,
-        FOREIGN KEY (question_id) REFERENCES questions (id) ON DELETE CASCADE
-      )
-    ''');
+    // Create indexes
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_quizzes_category ON quizzes(category_id)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_categories_active ON categories(is_active)',
+    );
 
-    // Seed categories in the requested order:
-    // 5 unlocked, 3 closed (score-locked), 2 premium (music and sports)
-    final animalsId = await db.insert('categories', {
+    // Seed categories
+    await _seedCategories(db);
+
+    // Seed quizzes
+    await _seedQuizzes(db);
+  }
+
+  Future<void> _seedCategories(Database db) async {
+    // 5 unlocked categories
+    await db.insert('categories', {
       'name': 'Animals',
       'description': 'Learn about different animals',
       'color': '#FF8B5CF6',
@@ -126,7 +159,7 @@ class DatabaseHelper {
       'is_premium': 0,
     });
 
-    final fruitsId = await db.insert('categories', {
+    await db.insert('categories', {
       'name': 'Fruits',
       'description': 'Learn about different fruits',
       'color': '#FFF97316',
@@ -135,7 +168,7 @@ class DatabaseHelper {
       'is_premium': 0,
     });
 
-    final vegetablesId = await db.insert('categories', {
+    await db.insert('categories', {
       'name': 'Vegetables',
       'description': 'Learn about healthy vegetables',
       'color': '#FF22C55E',
@@ -144,7 +177,7 @@ class DatabaseHelper {
       'is_premium': 0,
     });
 
-    final numbersId = await db.insert('categories', {
+    await db.insert('categories', {
       'name': 'Numbers',
       'description': 'Learn to count and recognize numbers',
       'color': '#FFEAB308',
@@ -153,7 +186,7 @@ class DatabaseHelper {
       'is_premium': 0,
     });
 
-    final shapesId = await db.insert('categories', {
+    await db.insert('categories', {
       'name': 'Shapes',
       'description': 'Learn about geometric shapes',
       'color': '#FF06B6D4',
@@ -162,8 +195,8 @@ class DatabaseHelper {
       'is_premium': 0,
     });
 
-    // Closed / score-locked categories
-    final transportationId = await db.insert('categories', {
+    // 3 score-locked categories
+    await db.insert('categories', {
       'name': 'Transportation',
       'description': 'Learn about different vehicles',
       'color': '#FF3B82F6',
@@ -172,7 +205,7 @@ class DatabaseHelper {
       'is_premium': 0,
     });
 
-    final colorsId = await db.insert('categories', {
+    await db.insert('categories', {
       'name': 'Colors',
       'description': 'Learn about colors and shades',
       'color': '#FFEC4899',
@@ -181,7 +214,7 @@ class DatabaseHelper {
       'is_premium': 0,
     });
 
-    final emotionsId = await db.insert('categories', {
+    await db.insert('categories', {
       'name': 'Emotions',
       'description': 'Learn about emotions and feelings',
       'color': '#FFD4AF37',
@@ -190,8 +223,8 @@ class DatabaseHelper {
       'is_premium': 0,
     });
 
-    // Premium categories (music and sports)
-    final musicId = await db.insert('categories', {
+    // 2 premium categories
+    await db.insert('categories', {
       'name': 'Music',
       'description': 'Learn about musical instruments',
       'color': '#FFA855F7',
@@ -200,7 +233,7 @@ class DatabaseHelper {
       'is_premium': 1,
     });
 
-    final sportsId = await db.insert('categories', {
+    await db.insert('categories', {
       'name': 'Sports',
       'description': 'Learn about different sports',
       'color': '#FFF43F5E',
@@ -208,861 +241,178 @@ class DatabaseHelper {
       'required_score': 0,
       'is_premium': 1,
     });
+  }
 
-    // Seed sample questions and answers for each category so quizzes show up
-    Future<void> insertQuestionWithAnswers(
-      int categoryId,
-      String questionText,
-      List<Map<String, dynamic>> answers,
-    ) async {
-      final qId = await db.insert('questions', {
+  Future<void> _seedQuizzes(Database db) async {
+    // Helper function to insert quiz
+    Future<void> insertQuiz({
+      required int categoryId,
+      required String question,
+      required String a1,
+      required String a2,
+      required String a3,
+      required String a4,
+      required String correctAnswers, // e.g., "1" or "1,3" for multiple
+      int points = 10,
+    }) async {
+      await db.insert('quizzes', {
         'category_id': categoryId,
-        'question_text': questionText,
-        'image_url': null,
+        'question_text': question,
+        'answer1': a1,
+        'answer2': a2,
+        'answer3': a3,
+        'answer4': a4,
+        'correct_answers': correctAnswers,
+        'points': points,
         'level': 1,
-        'points': 10,
       });
-
-      int order = 0;
-      for (final ans in answers) {
-        await db.insert('answers', {
-          'question_id': qId,
-          'answer_text': ans['text'],
-          'is_correct': ans['is_correct'] ? 1 : 0,
-          'display_order': order++,
-        });
-      }
     }
 
-    // Animals
-    await insertQuestionWithAnswers(animalsId, 'Which animal says "meow"?', [
-      {'text': 'Cat', 'is_correct': true},
-      {'text': 'Dog', 'is_correct': false},
-      {'text': 'Cow', 'is_correct': false},
-      {'text': 'Sheep', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(animalsId, 'Which is the fastest animal?', [
-      {'text': 'Cheetah', 'is_correct': true},
-      {'text': 'Lion', 'is_correct': false},
-      {'text': 'Zebra', 'is_correct': false},
-      {'text': 'Giraffe', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(animalsId, 'What sound does a duck make?', [
-      {'text': 'Quack', 'is_correct': true},
-      {'text': 'Moo', 'is_correct': false},
-      {'text': 'Baa', 'is_correct': false},
-      {'text': 'Oink', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(animalsId, 'Which animal has stripes?', [
-      {'text': 'Zebra', 'is_correct': true},
-      {'text': 'Giraffe', 'is_correct': false},
-      {'text': 'Lion', 'is_correct': false},
-      {'text': 'Elephant', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(animalsId, 'What do bees make?', [
-      {'text': 'Honey', 'is_correct': true},
-      {'text': 'Milk', 'is_correct': false},
-      {'text': 'Eggs', 'is_correct': false},
-      {'text': 'Wax', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      animalsId,
-      'How many legs does a spider have?',
-      [
-        {'text': '8', 'is_correct': true},
-        {'text': '6', 'is_correct': false},
-        {'text': '4', 'is_correct': false},
-        {'text': '10', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      animalsId,
-      'Which animal is the king of the jungle?',
-      [
-        {'text': 'Lion', 'is_correct': true},
-        {'text': 'Tiger', 'is_correct': false},
-        {'text': 'Elephant', 'is_correct': false},
-        {'text': 'Bear', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(animalsId, 'What is a baby dog called?', [
-      {'text': 'Puppy', 'is_correct': true},
-      {'text': 'Kitten', 'is_correct': false},
-      {'text': 'Calf', 'is_correct': false},
-      {'text': 'Chick', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      animalsId,
-      'Which animal lives in water and lays eggs?',
-      [
-        {'text': 'Fish', 'is_correct': true},
-        {'text': 'Duck', 'is_correct': false},
-        {'text': 'Penguin', 'is_correct': false},
-        {'text': 'Crocodile', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(animalsId, 'What color is a flamingo?', [
-      {'text': 'Pink', 'is_correct': true},
-      {'text': 'Red', 'is_correct': false},
-      {'text': 'White', 'is_correct': false},
-      {'text': 'Yellow', 'is_correct': false},
-    ]);
+    // ============================================================
+    // ANIMALS (category_id = 1)
+    // ============================================================
+    await insertQuiz(categoryId: 1, question: 'Which animal says "meow"?', a1: 'Cat', a2: 'Dog', a3: 'Cow', a4: 'Sheep', correctAnswers: '1');
+    await insertQuiz(categoryId: 1, question: 'Which is the fastest animal?', a1: 'Cheetah', a2: 'Lion', a3: 'Zebra', a4: 'Giraffe', correctAnswers: '1');
+    await insertQuiz(categoryId: 1, question: 'What sound does a duck make?', a1: 'Quack', a2: 'Moo', a3: 'Baa', a4: 'Oink', correctAnswers: '1');
+    await insertQuiz(categoryId: 1, question: 'Which animal has stripes?', a1: 'Zebra', a2: 'Giraffe', a3: 'Lion', a4: 'Elephant', correctAnswers: '1');
+    await insertQuiz(categoryId: 1, question: 'What do bees make?', a1: 'Honey', a2: 'Milk', a3: 'Eggs', a4: 'Wax', correctAnswers: '1');
+    await insertQuiz(categoryId: 1, question: 'How many legs does a spider have?', a1: '8', a2: '6', a3: '4', a4: '10', correctAnswers: '1');
+    await insertQuiz(categoryId: 1, question: 'Which animal is the king of the jungle?', a1: 'Lion', a2: 'Tiger', a3: 'Elephant', a4: 'Bear', correctAnswers: '1');
+    await insertQuiz(categoryId: 1, question: 'What is a baby dog called?', a1: 'Puppy', a2: 'Kitten', a3: 'Calf', a4: 'Chick', correctAnswers: '1');
+    await insertQuiz(categoryId: 1, question: 'Which animal lives in water and lays eggs?', a1: 'Fish', a2: 'Duck', a3: 'Penguin', a4: 'Crocodile', correctAnswers: '1');
+    await insertQuiz(categoryId: 1, question: 'What color is a flamingo?', a1: 'Pink', a2: 'Red', a3: 'White', a4: 'Yellow', correctAnswers: '1');
+    // Multiple choice animals
+    await insertQuiz(categoryId: 1, question: 'Which animals can fly?', a1: 'Bird', a2: 'Fish', a3: 'Bat', a4: 'Dog', correctAnswers: '1,3', points: 15);
+    await insertQuiz(categoryId: 1, question: 'Which animals live in water?', a1: 'Fish', a2: 'Dolphin', a3: 'Lion', a4: 'Whale', correctAnswers: '1,2,4', points: 20);
 
-    // Fruits
-    await insertQuestionWithAnswers(
-      fruitsId,
-      'Which of these is a citrus fruit?',
-      [
-        {'text': 'Orange', 'is_correct': true},
-        {'text': 'Banana', 'is_correct': false},
-        {'text': 'Apple', 'is_correct': false},
-        {'text': 'Grape', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(fruitsId, 'Which fruit is yellow?', [
-      {'text': 'Banana', 'is_correct': true},
-      {'text': 'Apple', 'is_correct': false},
-      {'text': 'Orange', 'is_correct': false},
-      {'text': 'Grape', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      fruitsId,
-      'What fruit is red and grows on trees?',
-      [
-        {'text': 'Apple', 'is_correct': true},
-        {'text': 'Banana', 'is_correct': false},
-        {'text': 'Lemon', 'is_correct': false},
-        {'text': 'Lime', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(fruitsId, 'Which fruit grows in bunches?', [
-      {'text': 'Grapes', 'is_correct': true},
-      {'text': 'Apple', 'is_correct': false},
-      {'text': 'Pear', 'is_correct': false},
-      {'text': 'Peach', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      fruitsId,
-      'What is a small round red fruit?',
-      [
-        {'text': 'Strawberry', 'is_correct': true},
-        {'text': 'Blueberry', 'is_correct': false},
-        {'text': 'Raspberry', 'is_correct': false},
-        {'text': 'Blackberry', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      fruitsId,
-      'Which fruit is tropical and has a crown?',
-      [
-        {'text': 'Pineapple', 'is_correct': true},
-        {'text': 'Papaya', 'is_correct': false},
-        {'text': 'Mango', 'is_correct': false},
-        {'text': 'Coconut', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      fruitsId,
-      'What color is a ripe blueberry?',
-      [
-        {'text': 'Blue', 'is_correct': true},
-        {'text': 'Red', 'is_correct': false},
-        {'text': 'Purple', 'is_correct': false},
-        {'text': 'Black', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      fruitsId,
-      'Which fruit looks like a tiny orange?',
-      [
-        {'text': 'Tangerine', 'is_correct': true},
-        {'text': 'Lime', 'is_correct': false},
-        {'text': 'Lemon', 'is_correct': false},
-        {'text': 'Grapefruit', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      fruitsId,
-      'What is a sweet yellow tropical fruit?',
-      [
-        {'text': 'Mango', 'is_correct': true},
-        {'text': 'Papaya', 'is_correct': false},
-        {'text': 'Guava', 'is_correct': false},
-        {'text': 'Passion fruit', 'is_correct': false},
-      ],
-    );
+    // ============================================================
+    // FRUITS (category_id = 2)
+    // ============================================================
+    await insertQuiz(categoryId: 2, question: 'Which of these is a citrus fruit?', a1: 'Orange', a2: 'Banana', a3: 'Apple', a4: 'Grape', correctAnswers: '1');
+    await insertQuiz(categoryId: 2, question: 'Which fruit is yellow?', a1: 'Banana', a2: 'Apple', a3: 'Orange', a4: 'Grape', correctAnswers: '1');
+    await insertQuiz(categoryId: 2, question: 'What fruit is red and grows on trees?', a1: 'Apple', a2: 'Banana', a3: 'Lemon', a4: 'Lime', correctAnswers: '1');
+    await insertQuiz(categoryId: 2, question: 'Which fruit grows in bunches?', a1: 'Grapes', a2: 'Apple', a3: 'Pear', a4: 'Peach', correctAnswers: '1');
+    await insertQuiz(categoryId: 2, question: 'What is a small round red fruit?', a1: 'Strawberry', a2: 'Blueberry', a3: 'Raspberry', a4: 'Blackberry', correctAnswers: '1');
+    await insertQuiz(categoryId: 2, question: 'Which fruit is tropical and has a crown?', a1: 'Pineapple', a2: 'Papaya', a3: 'Mango', a4: 'Coconut', correctAnswers: '1');
+    await insertQuiz(categoryId: 2, question: 'What color is a ripe blueberry?', a1: 'Blue', a2: 'Red', a3: 'Purple', a4: 'Black', correctAnswers: '1');
+    await insertQuiz(categoryId: 2, question: 'Which fruit looks like a tiny orange?', a1: 'Tangerine', a2: 'Lime', a3: 'Lemon', a4: 'Grapefruit', correctAnswers: '1');
+    await insertQuiz(categoryId: 2, question: 'What is a sweet yellow tropical fruit?', a1: 'Mango', a2: 'Papaya', a3: 'Guava', a4: 'Passion fruit', correctAnswers: '1');
+    await insertQuiz(categoryId: 2, question: 'Which fruits are berries?', a1: 'Strawberry', a2: 'Apple', a3: 'Blueberry', a4: 'Orange', correctAnswers: '1,3', points: 15);
+    await insertQuiz(categoryId: 2, question: 'Which are citrus fruits?', a1: 'Lemon', a2: 'Apple', a3: 'Orange', a4: 'Banana', correctAnswers: '1,3', points: 15);
 
-    // Vegetables
-    await insertQuestionWithAnswers(vegetablesId, 'Which is a vegetable?', [
-      {'text': 'Carrot', 'is_correct': true},
-      {'text': 'Strawberry', 'is_correct': false},
-      {'text': 'Mango', 'is_correct': false},
-      {'text': 'Orange', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      vegetablesId,
-      'Which vegetable is orange?',
-      [
-        {'text': 'Carrot', 'is_correct': true},
-        {'text': 'Pea', 'is_correct': false},
-        {'text': 'Corn', 'is_correct': false},
-        {'text': 'Bean', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      vegetablesId,
-      'What vegetable grows underground?',
-      [
-        {'text': 'Potato', 'is_correct': true},
-        {'text': 'Tomato', 'is_correct': false},
-        {'text': 'Lettuce', 'is_correct': false},
-        {'text': 'Cucumber', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      vegetablesId,
-      'Which is a leafy green vegetable?',
-      [
-        {'text': 'Spinach', 'is_correct': true},
-        {'text': 'Carrot', 'is_correct': false},
-        {'text': 'Onion', 'is_correct': false},
-        {'text': 'Pepper', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      vegetablesId,
-      'What vegetable makes you cry?',
-      [
-        {'text': 'Onion', 'is_correct': true},
-        {'text': 'Garlic', 'is_correct': false},
-        {'text': 'Leek', 'is_correct': false},
-        {'text': 'Shallot', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      vegetablesId,
-      'Which vegetable is red and round?',
-      [
-        {'text': 'Tomato', 'is_correct': true},
-        {'text': 'Pepper', 'is_correct': false},
-        {'text': 'Radish', 'is_correct': false},
-        {'text': 'Beet', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      vegetablesId,
-      'What vegetable has florets?',
-      [
-        {'text': 'Broccoli', 'is_correct': true},
-        {'text': 'Lettuce', 'is_correct': false},
-        {'text': 'Carrot', 'is_correct': false},
-        {'text': 'Cucumber', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      vegetablesId,
-      'Which vegetable is long and green?',
-      [
-        {'text': 'Cucumber', 'is_correct': true},
-        {'text': 'Zucchini', 'is_correct': false},
-        {'text': 'Bean', 'is_correct': false},
-        {'text': 'Pea', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      vegetablesId,
-      'What vegetable grows in pods?',
-      [
-        {'text': 'Pea', 'is_correct': true},
-        {'text': 'Carrot', 'is_correct': false},
-        {'text': 'Potato', 'is_correct': false},
-        {'text': 'Turnip', 'is_correct': false},
-      ],
-    );
+    // ============================================================
+    // VEGETABLES (category_id = 3)
+    // ============================================================
+    await insertQuiz(categoryId: 3, question: 'Which is a vegetable?', a1: 'Carrot', a2: 'Strawberry', a3: 'Mango', a4: 'Orange', correctAnswers: '1');
+    await insertQuiz(categoryId: 3, question: 'Which vegetable is orange?', a1: 'Carrot', a2: 'Pea', a3: 'Corn', a4: 'Bean', correctAnswers: '1');
+    await insertQuiz(categoryId: 3, question: 'What vegetable grows underground?', a1: 'Potato', a2: 'Tomato', a3: 'Lettuce', a4: 'Cucumber', correctAnswers: '1');
+    await insertQuiz(categoryId: 3, question: 'Which is a leafy green vegetable?', a1: 'Spinach', a2: 'Carrot', a3: 'Onion', a4: 'Pepper', correctAnswers: '1');
+    await insertQuiz(categoryId: 3, question: 'What vegetable makes you cry?', a1: 'Onion', a2: 'Garlic', a3: 'Leek', a4: 'Shallot', correctAnswers: '1');
+    await insertQuiz(categoryId: 3, question: 'Which vegetable is red and round?', a1: 'Tomato', a2: 'Pepper', a3: 'Radish', a4: 'Beet', correctAnswers: '1');
+    await insertQuiz(categoryId: 3, question: 'What vegetable has florets?', a1: 'Broccoli', a2: 'Lettuce', a3: 'Carrot', a4: 'Cucumber', correctAnswers: '1');
+    await insertQuiz(categoryId: 3, question: 'Which vegetable is long and green?', a1: 'Cucumber', a2: 'Zucchini', a3: 'Bean', a4: 'Pea', correctAnswers: '1');
+    await insertQuiz(categoryId: 3, question: 'What vegetable grows in pods?', a1: 'Pea', a2: 'Carrot', a3: 'Potato', a4: 'Turnip', correctAnswers: '1');
+    await insertQuiz(categoryId: 3, question: 'Which vegetables grow underground?', a1: 'Potato', a2: 'Tomato', a3: 'Carrot', a4: 'Lettuce', correctAnswers: '1,3', points: 15);
 
-    // Numbers
-    await insertQuestionWithAnswers(numbersId, 'What number comes after 2?', [
-      {'text': '3', 'is_correct': true},
-      {'text': '1', 'is_correct': false},
-      {'text': '4', 'is_correct': false},
-      {'text': '5', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(numbersId, 'What is 1 + 1?', [
-      {'text': '2', 'is_correct': true},
-      {'text': '1', 'is_correct': false},
-      {'text': '3', 'is_correct': false},
-      {'text': '4', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      numbersId,
-      'Which number is bigger: 5 or 3?',
-      [
-        {'text': '5', 'is_correct': true},
-        {'text': '3', 'is_correct': false},
-        {'text': 'They are equal', 'is_correct': false},
-        {'text': 'None', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(numbersId, 'What number comes before 5?', [
-      {'text': '4', 'is_correct': true},
-      {'text': '5', 'is_correct': false},
-      {'text': '6', 'is_correct': false},
-      {'text': '3', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      numbersId,
-      'How many fingers on one hand?',
-      [
-        {'text': '5', 'is_correct': true},
-        {'text': '4', 'is_correct': false},
-        {'text': '6', 'is_correct': false},
-        {'text': '10', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(numbersId, 'What is 2 + 3?', [
-      {'text': '5', 'is_correct': true},
-      {'text': '4', 'is_correct': false},
-      {'text': '6', 'is_correct': false},
-      {'text': '3', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      numbersId,
-      'How many sides does a triangle have?',
-      [
-        {'text': '3', 'is_correct': true},
-        {'text': '4', 'is_correct': false},
-        {'text': '2', 'is_correct': false},
-        {'text': '5', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(numbersId, 'What comes after 7?', [
-      {'text': '8', 'is_correct': true},
-      {'text': '7', 'is_correct': false},
-      {'text': '9', 'is_correct': false},
-      {'text': '6', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      numbersId,
-      'Count the fingers: how many is 2 hands?',
-      [
-        {'text': '10', 'is_correct': true},
-        {'text': '5', 'is_correct': false},
-        {'text': '8', 'is_correct': false},
-        {'text': '12', 'is_correct': false},
-      ],
-    );
+    // ============================================================
+    // NUMBERS (category_id = 4)
+    // ============================================================
+    await insertQuiz(categoryId: 4, question: 'What number comes after 2?', a1: '3', a2: '1', a3: '4', a4: '5', correctAnswers: '1');
+    await insertQuiz(categoryId: 4, question: 'What is 1 + 1?', a1: '2', a2: '1', a3: '3', a4: '4', correctAnswers: '1');
+    await insertQuiz(categoryId: 4, question: 'Which number is bigger: 5 or 3?', a1: '5', a2: '3', a3: 'They are equal', a4: 'None', correctAnswers: '1');
+    await insertQuiz(categoryId: 4, question: 'What number comes before 5?', a1: '4', a2: '5', a3: '6', a4: '3', correctAnswers: '1');
+    await insertQuiz(categoryId: 4, question: 'How many fingers on one hand?', a1: '5', a2: '4', a3: '6', a4: '10', correctAnswers: '1');
+    await insertQuiz(categoryId: 4, question: 'What is 2 + 3?', a1: '5', a2: '4', a3: '6', a4: '3', correctAnswers: '1');
+    await insertQuiz(categoryId: 4, question: 'How many sides does a triangle have?', a1: '3', a2: '4', a3: '2', a4: '5', correctAnswers: '1');
+    await insertQuiz(categoryId: 4, question: 'What comes after 7?', a1: '8', a2: '7', a3: '9', a4: '6', correctAnswers: '1');
+    await insertQuiz(categoryId: 4, question: 'Count the fingers: how many is 2 hands?', a1: '10', a2: '5', a3: '8', a4: '12', correctAnswers: '1');
+    await insertQuiz(categoryId: 4, question: 'Which numbers are even?', a1: '2', a2: '3', a3: '4', a4: '5', correctAnswers: '1,3', points: 15);
+    await insertQuiz(categoryId: 4, question: 'Which numbers are odd?', a1: '1', a2: '2', a3: '3', a4: '4', correctAnswers: '1,3', points: 15);
 
-    // Shapes
-    await insertQuestionWithAnswers(
-      shapesId,
-      'Which shape has 4 equal sides?',
-      [
-        {'text': 'Square', 'is_correct': true},
-        {'text': 'Triangle', 'is_correct': false},
-        {'text': 'Circle', 'is_correct': false},
-        {'text': 'Rectangle', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(shapesId, 'Which shape is round?', [
-      {'text': 'Circle', 'is_correct': true},
-      {'text': 'Square', 'is_correct': false},
-      {'text': 'Triangle', 'is_correct': false},
-      {'text': 'Rectangle', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      shapesId,
-      'How many sides does a circle have?',
-      [
-        {'text': 'None', 'is_correct': true},
-        {'text': '1', 'is_correct': false},
-        {'text': '2', 'is_correct': false},
-        {'text': '4', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(shapesId, 'Which shape has 3 sides?', [
-      {'text': 'Triangle', 'is_correct': true},
-      {'text': 'Square', 'is_correct': false},
-      {'text': 'Circle', 'is_correct': false},
-      {'text': 'Pentagon', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      shapesId,
-      'A rectangle is longer than it is tall, true or false?',
-      [
-        {'text': 'True', 'is_correct': true},
-        {'text': 'False', 'is_correct': false},
-        {'text': 'Sometimes', 'is_correct': false},
-        {'text': 'Never', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      shapesId,
-      'How many corners does a triangle have?',
-      [
-        {'text': '3', 'is_correct': true},
-        {'text': '2', 'is_correct': false},
-        {'text': '4', 'is_correct': false},
-        {'text': '5', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      shapesId,
-      'Which shape looks like a star?',
-      [
-        {'text': 'Star', 'is_correct': true},
-        {'text': 'Circle', 'is_correct': false},
-        {'text': 'Square', 'is_correct': false},
-        {'text': 'Triangle', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(shapesId, 'What shape is a stop sign?', [
-      {'text': 'Octagon', 'is_correct': true},
-      {'text': 'Square', 'is_correct': false},
-      {'text': 'Pentagon', 'is_correct': false},
-      {'text': 'Hexagon', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      shapesId,
-      'A diamond shape has how many sides?',
-      [
-        {'text': '4', 'is_correct': true},
-        {'text': '3', 'is_correct': false},
-        {'text': '5', 'is_correct': false},
-        {'text': '6', 'is_correct': false},
-      ],
-    );
+    // ============================================================
+    // SHAPES (category_id = 5)
+    // ============================================================
+    await insertQuiz(categoryId: 5, question: 'Which shape has 4 equal sides?', a1: 'Square', a2: 'Triangle', a3: 'Circle', a4: 'Rectangle', correctAnswers: '1');
+    await insertQuiz(categoryId: 5, question: 'Which shape is round?', a1: 'Circle', a2: 'Square', a3: 'Triangle', a4: 'Rectangle', correctAnswers: '1');
+    await insertQuiz(categoryId: 5, question: 'How many sides does a circle have?', a1: 'None', a2: '1', a3: '2', a4: '4', correctAnswers: '1');
+    await insertQuiz(categoryId: 5, question: 'Which shape has 3 sides?', a1: 'Triangle', a2: 'Square', a3: 'Circle', a4: 'Pentagon', correctAnswers: '1');
+    await insertQuiz(categoryId: 5, question: 'A rectangle is longer than it is tall, true or false?', a1: 'True', a2: 'False', a3: 'Sometimes', a4: 'Never', correctAnswers: '1');
+    await insertQuiz(categoryId: 5, question: 'How many corners does a triangle have?', a1: '3', a2: '2', a3: '4', a4: '5', correctAnswers: '1');
+    await insertQuiz(categoryId: 5, question: 'Which shape looks like a star?', a1: 'Star', a2: 'Circle', a3: 'Square', a4: 'Triangle', correctAnswers: '1');
+    await insertQuiz(categoryId: 5, question: 'What shape is a stop sign?', a1: 'Octagon', a2: 'Square', a3: 'Pentagon', a4: 'Hexagon', correctAnswers: '1');
+    await insertQuiz(categoryId: 5, question: 'A diamond shape has how many sides?', a1: '4', a2: '3', a3: '5', a4: '6', correctAnswers: '1');
+    await insertQuiz(categoryId: 5, question: 'Which shapes have 4 sides?', a1: 'Square', a2: 'Triangle', a3: 'Rectangle', a4: 'Circle', correctAnswers: '1,3', points: 15);
 
-    // Transportation (closed)
-    await insertQuestionWithAnswers(transportationId, 'Which vehicle flies?', [
-      {'text': 'Airplane', 'is_correct': true},
-      {'text': 'Car', 'is_correct': false},
-      {'text': 'Boat', 'is_correct': false},
-      {'text': 'Bicycle', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      transportationId,
-      'Which vehicle is used on water?',
-      [
-        {'text': 'Boat', 'is_correct': true},
-        {'text': 'Car', 'is_correct': false},
-        {'text': 'Train', 'is_correct': false},
-        {'text': 'Bus', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      transportationId,
-      'What vehicle runs on train tracks?',
-      [
-        {'text': 'Train', 'is_correct': true},
-        {'text': 'Car', 'is_correct': false},
-        {'text': 'Bus', 'is_correct': false},
-        {'text': 'Bike', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      transportationId,
-      'Which vehicle has two wheels?',
-      [
-        {'text': 'Bicycle', 'is_correct': true},
-        {'text': 'Car', 'is_correct': false},
-        {'text': 'Bus', 'is_correct': false},
-        {'text': 'Truck', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      transportationId,
-      'What is a person who drives a bus called?',
-      [
-        {'text': 'Bus driver', 'is_correct': true},
-        {'text': 'Pilot', 'is_correct': false},
-        {'text': 'Captain', 'is_correct': false},
-        {'text': 'Engineer', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      transportationId,
-      'Which vehicle carries lots of people?',
-      [
-        {'text': 'Bus', 'is_correct': true},
-        {'text': 'Car', 'is_correct': false},
-        {'text': 'Bike', 'is_correct': false},
-        {'text': 'Scooter', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      transportationId,
-      'What vehicle has a big truck bed?',
-      [
-        {'text': 'Pickup truck', 'is_correct': true},
-        {'text': 'Car', 'is_correct': false},
-        {'text': 'Van', 'is_correct': false},
-        {'text': 'Bus', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      transportationId,
-      'Which vehicle needs gas to run?',
-      [
-        {'text': 'Car', 'is_correct': true},
-        {'text': 'Bicycle', 'is_correct': false},
-        {'text': 'Skateboard', 'is_correct': false},
-        {'text': 'Scooter', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      transportationId,
-      'What vehicle is used for emergency help?',
-      [
-        {'text': 'Ambulance', 'is_correct': true},
-        {'text': 'Taxi', 'is_correct': false},
-        {'text': 'Bus', 'is_correct': false},
-        {'text': 'Car', 'is_correct': false},
-      ],
-    );
+    // ============================================================
+    // TRANSPORTATION (category_id = 6)
+    // ============================================================
+    await insertQuiz(categoryId: 6, question: 'Which vehicle flies?', a1: 'Airplane', a2: 'Car', a3: 'Boat', a4: 'Bicycle', correctAnswers: '1');
+    await insertQuiz(categoryId: 6, question: 'Which vehicle is used on water?', a1: 'Boat', a2: 'Car', a3: 'Train', a4: 'Bus', correctAnswers: '1');
+    await insertQuiz(categoryId: 6, question: 'What vehicle runs on train tracks?', a1: 'Train', a2: 'Car', a3: 'Bus', a4: 'Bike', correctAnswers: '1');
+    await insertQuiz(categoryId: 6, question: 'Which vehicle has two wheels?', a1: 'Bicycle', a2: 'Car', a3: 'Bus', a4: 'Truck', correctAnswers: '1');
+    await insertQuiz(categoryId: 6, question: 'What is a person who drives a bus called?', a1: 'Bus driver', a2: 'Pilot', a3: 'Captain', a4: 'Engineer', correctAnswers: '1');
+    await insertQuiz(categoryId: 6, question: 'Which vehicle carries lots of people?', a1: 'Bus', a2: 'Car', a3: 'Bike', a4: 'Scooter', correctAnswers: '1');
+    await insertQuiz(categoryId: 6, question: 'What vehicle has a big truck bed?', a1: 'Pickup truck', a2: 'Car', a3: 'Van', a4: 'Bus', correctAnswers: '1');
+    await insertQuiz(categoryId: 6, question: 'Which vehicle needs gas to run?', a1: 'Car', a2: 'Bicycle', a3: 'Skateboard', a4: 'Scooter', correctAnswers: '1');
+    await insertQuiz(categoryId: 6, question: 'What vehicle is used for emergency help?', a1: 'Ambulance', a2: 'Taxi', a3: 'Bus', a4: 'Car', correctAnswers: '1');
+    await insertQuiz(categoryId: 6, question: 'Which vehicles have two wheels?', a1: 'Bicycle', a2: 'Car', a3: 'Motorcycle', a4: 'Bus', correctAnswers: '1,3', points: 15);
 
-    // Colors (closed)
-    await insertQuestionWithAnswers(
-      colorsId,
-      'What color do you get by mixing red and blue?',
-      [
-        {'text': 'Purple', 'is_correct': true},
-        {'text': 'Green', 'is_correct': false},
-        {'text': 'Orange', 'is_correct': false},
-        {'text': 'Brown', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      colorsId,
-      'What color is the sky on a clear day?',
-      [
-        {'text': 'Blue', 'is_correct': true},
-        {'text': 'Green', 'is_correct': false},
-        {'text': 'Pink', 'is_correct': false},
-        {'text': 'Yellow', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(colorsId, 'What color is grass?', [
-      {'text': 'Green', 'is_correct': true},
-      {'text': 'Blue', 'is_correct': false},
-      {'text': 'Brown', 'is_correct': false},
-      {'text': 'Yellow', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(colorsId, 'What color is a ripe tomato?', [
-      {'text': 'Red', 'is_correct': true},
-      {'text': 'Green', 'is_correct': false},
-      {'text': 'Yellow', 'is_correct': false},
-      {'text': 'Orange', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(colorsId, 'What color is snow?', [
-      {'text': 'White', 'is_correct': true},
-      {'text': 'Blue', 'is_correct': false},
-      {'text': 'Gray', 'is_correct': false},
-      {'text': 'Clear', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(colorsId, 'What color is a banana?', [
-      {'text': 'Yellow', 'is_correct': true},
-      {'text': 'Green', 'is_correct': false},
-      {'text': 'Orange', 'is_correct': false},
-      {'text': 'Brown', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      colorsId,
-      'What color do you get by mixing red and yellow?',
-      [
-        {'text': 'Orange', 'is_correct': true},
-        {'text': 'Green', 'is_correct': false},
-        {'text': 'Purple', 'is_correct': false},
-        {'text': 'Brown', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      colorsId,
-      'What color do you get by mixing blue and yellow?',
-      [
-        {'text': 'Green', 'is_correct': true},
-        {'text': 'Purple', 'is_correct': false},
-        {'text': 'Orange', 'is_correct': false},
-        {'text': 'Brown', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(colorsId, 'What color is a fire truck?', [
-      {'text': 'Red', 'is_correct': true},
-      {'text': 'Blue', 'is_correct': false},
-      {'text': 'Yellow', 'is_correct': false},
-      {'text': 'White', 'is_correct': false},
-    ]);
+    // ============================================================
+    // COLORS (category_id = 7)
+    // ============================================================
+    await insertQuiz(categoryId: 7, question: 'What color do you get by mixing red and blue?', a1: 'Purple', a2: 'Green', a3: 'Orange', a4: 'Brown', correctAnswers: '1');
+    await insertQuiz(categoryId: 7, question: 'What color is the sky on a clear day?', a1: 'Blue', a2: 'Green', a3: 'Pink', a4: 'Yellow', correctAnswers: '1');
+    await insertQuiz(categoryId: 7, question: 'What color is grass?', a1: 'Green', a2: 'Blue', a3: 'Brown', a4: 'Yellow', correctAnswers: '1');
+    await insertQuiz(categoryId: 7, question: 'What color is a ripe tomato?', a1: 'Red', a2: 'Green', a3: 'Yellow', a4: 'Orange', correctAnswers: '1');
+    await insertQuiz(categoryId: 7, question: 'What color is snow?', a1: 'White', a2: 'Blue', a3: 'Gray', a4: 'Clear', correctAnswers: '1');
+    await insertQuiz(categoryId: 7, question: 'What color is a banana?', a1: 'Yellow', a2: 'Green', a3: 'Orange', a4: 'Brown', correctAnswers: '1');
+    await insertQuiz(categoryId: 7, question: 'What color do you get by mixing red and yellow?', a1: 'Orange', a2: 'Green', a3: 'Purple', a4: 'Brown', correctAnswers: '1');
+    await insertQuiz(categoryId: 7, question: 'What color do you get by mixing blue and yellow?', a1: 'Green', a2: 'Purple', a3: 'Orange', a4: 'Brown', correctAnswers: '1');
+    await insertQuiz(categoryId: 7, question: 'What color is a fire truck?', a1: 'Red', a2: 'Blue', a3: 'Yellow', a4: 'White', correctAnswers: '1');
+    await insertQuiz(categoryId: 7, question: 'Which are primary colors?', a1: 'Red', a2: 'Orange', a3: 'Blue', a4: 'Yellow', correctAnswers: '1,3,4', points: 20);
+    await insertQuiz(categoryId: 7, question: 'Which colors are warm colors?', a1: 'Red', a2: 'Blue', a3: 'Orange', a4: 'Yellow', correctAnswers: '1,3,4', points: 15);
 
-    // Emotions (closed)
-    await insertQuestionWithAnswers(
-      emotionsId,
-      'Which emotion shows happiness?',
-      [
-        {'text': 'Smiling', 'is_correct': true},
-        {'text': 'Crying', 'is_correct': false},
-        {'text': 'Angry', 'is_correct': false},
-        {'text': 'Scared', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      emotionsId,
-      'Which emotion means you are sad?',
-      [
-        {'text': 'Sad', 'is_correct': true},
-        {'text': 'Happy', 'is_correct': false},
-        {'text': 'Angry', 'is_correct': false},
-        {'text': 'Scared', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      emotionsId,
-      'What emotion do you feel when something is funny?',
-      [
-        {'text': 'Laughing', 'is_correct': true},
-        {'text': 'Crying', 'is_correct': false},
-        {'text': 'Angry', 'is_correct': false},
-        {'text': 'Scared', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(emotionsId, 'Which emotion shows fear?', [
-      {'text': 'Scared', 'is_correct': true},
-      {'text': 'Happy', 'is_correct': false},
-      {'text': 'Calm', 'is_correct': false},
-      {'text': 'Confident', 'is_correct': false},
-    ]);
-    await insertQuestionWithAnswers(
-      emotionsId,
-      'What emotion do you have when you are not calm?',
-      [
-        {'text': 'Angry', 'is_correct': true},
-        {'text': 'Happy', 'is_correct': false},
-        {'text': 'Sleepy', 'is_correct': false},
-        {'text': 'Bored', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      emotionsId,
-      'Which emotion is opposite to sad?',
-      [
-        {'text': 'Happy', 'is_correct': true},
-        {'text': 'Angry', 'is_correct': false},
-        {'text': 'Scared', 'is_correct': false},
-        {'text': 'Tired', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      emotionsId,
-      'What emotion do you have when something hurts?',
-      [
-        {'text': 'Pain', 'is_correct': true},
-        {'text': 'Happy', 'is_correct': false},
-        {'text': 'Calm', 'is_correct': false},
-        {'text': 'Excited', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      emotionsId,
-      'Which emotion means you feel well?',
-      [
-        {'text': 'Good', 'is_correct': true},
-        {'text': 'Bad', 'is_correct': false},
-        {'text': 'Tired', 'is_correct': false},
-        {'text': 'Bored', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      emotionsId,
-      'What do you feel when you see something exciting?',
-      [
-        {'text': 'Excited', 'is_correct': true},
-        {'text': 'Bored', 'is_correct': false},
-        {'text': 'Tired', 'is_correct': false},
-        {'text': 'Sad', 'is_correct': false},
-      ],
-    );
+    // ============================================================
+    // EMOTIONS (category_id = 8)
+    // ============================================================
+    await insertQuiz(categoryId: 8, question: 'Which emotion shows happiness?', a1: 'Smiling', a2: 'Crying', a3: 'Angry', a4: 'Scared', correctAnswers: '1');
+    await insertQuiz(categoryId: 8, question: 'Which emotion means you are sad?', a1: 'Sad', a2: 'Happy', a3: 'Angry', a4: 'Scared', correctAnswers: '1');
+    await insertQuiz(categoryId: 8, question: 'What emotion do you feel when something is funny?', a1: 'Laughing', a2: 'Crying', a3: 'Angry', a4: 'Scared', correctAnswers: '1');
+    await insertQuiz(categoryId: 8, question: 'Which emotion shows fear?', a1: 'Scared', a2: 'Happy', a3: 'Calm', a4: 'Confident', correctAnswers: '1');
+    await insertQuiz(categoryId: 8, question: 'What emotion do you have when you are not calm?', a1: 'Angry', a2: 'Happy', a3: 'Sleepy', a4: 'Bored', correctAnswers: '1');
+    await insertQuiz(categoryId: 8, question: 'Which emotion is opposite to sad?', a1: 'Happy', a2: 'Angry', a3: 'Scared', a4: 'Tired', correctAnswers: '1');
+    await insertQuiz(categoryId: 8, question: 'What emotion do you have when something hurts?', a1: 'Pain', a2: 'Happy', a3: 'Calm', a4: 'Excited', correctAnswers: '1');
+    await insertQuiz(categoryId: 8, question: 'Which emotion means you feel well?', a1: 'Good', a2: 'Bad', a3: 'Tired', a4: 'Bored', correctAnswers: '1');
+    await insertQuiz(categoryId: 8, question: 'What do you feel when you see something exciting?', a1: 'Excited', a2: 'Bored', a3: 'Tired', a4: 'Sad', correctAnswers: '1');
+    await insertQuiz(categoryId: 8, question: 'Which are positive emotions?', a1: 'Happy', a2: 'Sad', a3: 'Excited', a4: 'Angry', correctAnswers: '1,3', points: 15);
 
-    // Music (premium)
-    await insertQuestionWithAnswers(
-      musicId,
-      'Which instrument has keys and many strings inside?',
-      [
-        {'text': 'Piano', 'is_correct': true},
-        {'text': 'Drum', 'is_correct': false},
-        {'text': 'Flute', 'is_correct': false},
-        {'text': 'Guitar', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      musicId,
-      'Which instrument is blown like a whistle?',
-      [
-        {'text': 'Flute', 'is_correct': true},
-        {'text': 'Drum', 'is_correct': false},
-        {'text': 'Guitar', 'is_correct': false},
-        {'text': 'Violin', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      musicId,
-      'What do you hit to make music with a drum?',
-      [
-        {'text': 'Drumsticks', 'is_correct': true},
-        {'text': 'Mallets', 'is_correct': false},
-        {'text': 'Hands', 'is_correct': false},
-        {'text': 'Brushes', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      musicId,
-      'Which instrument has strings and is played with a bow?',
-      [
-        {'text': 'Violin', 'is_correct': true},
-        {'text': 'Guitar', 'is_correct': false},
-        {'text': 'Harp', 'is_correct': false},
-        {'text': 'Lute', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      musicId,
-      'What instrument looks like a small harp?',
-      [
-        {'text': 'Ukulele', 'is_correct': true},
-        {'text': 'Mandolin', 'is_correct': false},
-        {'text': 'Banjo', 'is_correct': false},
-        {'text': 'Lute', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      musicId,
-      'Which instrument is played by pressing keys?',
-      [
-        {'text': 'Keyboard', 'is_correct': true},
-        {'text': 'Violin', 'is_correct': false},
-        {'text': 'Guitar', 'is_correct': false},
-        {'text': 'Trumpet', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      musicId,
-      'What instrument is shiny and loud?',
-      [
-        {'text': 'Trumpet', 'is_correct': true},
-        {'text': 'Flute', 'is_correct': false},
-        {'text': 'Clarinet', 'is_correct': false},
-        {'text': 'Saxophone', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      musicId,
-      'How many strings does a guitar usually have?',
-      [
-        {'text': '6', 'is_correct': true},
-        {'text': '4', 'is_correct': false},
-        {'text': '8', 'is_correct': false},
-        {'text': '12', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      musicId,
-      'Which instrument sounds like a cat?',
-      [
-        {'text': 'Saxophone', 'is_correct': true},
-        {'text': 'Trumpet', 'is_correct': false},
-        {'text': 'Flute', 'is_correct': false},
-        {'text': 'Clarinet', 'is_correct': false},
-      ],
-    );
+    // ============================================================
+    // MUSIC (category_id = 9) - PREMIUM
+    // ============================================================
+    await insertQuiz(categoryId: 9, question: 'Which instrument has keys and many strings inside?', a1: 'Piano', a2: 'Drum', a3: 'Flute', a4: 'Guitar', correctAnswers: '1');
+    await insertQuiz(categoryId: 9, question: 'Which instrument is blown like a whistle?', a1: 'Flute', a2: 'Drum', a3: 'Guitar', a4: 'Violin', correctAnswers: '1');
+    await insertQuiz(categoryId: 9, question: 'What do you hit to make music with a drum?', a1: 'Drumsticks', a2: 'Mallets', a3: 'Hands', a4: 'Brushes', correctAnswers: '1');
+    await insertQuiz(categoryId: 9, question: 'Which instrument has strings and is played with a bow?', a1: 'Violin', a2: 'Guitar', a3: 'Harp', a4: 'Lute', correctAnswers: '1');
+    await insertQuiz(categoryId: 9, question: 'What instrument looks like a small harp?', a1: 'Ukulele', a2: 'Mandolin', a3: 'Banjo', a4: 'Lute', correctAnswers: '1');
+    await insertQuiz(categoryId: 9, question: 'Which instrument is played by pressing keys?', a1: 'Keyboard', a2: 'Violin', a3: 'Guitar', a4: 'Trumpet', correctAnswers: '1');
+    await insertQuiz(categoryId: 9, question: 'What instrument is shiny and loud?', a1: 'Trumpet', a2: 'Flute', a3: 'Clarinet', a4: 'Saxophone', correctAnswers: '1');
+    await insertQuiz(categoryId: 9, question: 'How many strings does a guitar usually have?', a1: '6', a2: '4', a3: '8', a4: '12', correctAnswers: '1');
+    await insertQuiz(categoryId: 9, question: 'Which instrument sounds like a cat?', a1: 'Saxophone', a2: 'Trumpet', a3: 'Flute', a4: 'Clarinet', correctAnswers: '1');
+    await insertQuiz(categoryId: 9, question: 'Which are string instruments?', a1: 'Guitar', a2: 'Drum', a3: 'Violin', a4: 'Flute', correctAnswers: '1,3', points: 15);
 
-    // Sports (premium)
-    await insertQuestionWithAnswers(
-      sportsId,
-      'Which sport uses a hoop and ball?',
-      [
-        {'text': 'Basketball', 'is_correct': true},
-        {'text': 'Soccer', 'is_correct': false},
-        {'text': 'Tennis', 'is_correct': false},
-        {'text': 'Cricket', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      sportsId,
-      'Which sport uses a ball and a racket?',
-      [
-        {'text': 'Tennis', 'is_correct': true},
-        {'text': 'Basketball', 'is_correct': false},
-        {'text': 'Soccer', 'is_correct': false},
-        {'text': 'Volleyball', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      sportsId,
-      'Which sport is played on grass with a ball?',
-      [
-        {'text': 'Soccer', 'is_correct': true},
-        {'text': 'Tennis', 'is_correct': false},
-        {'text': 'Basketball', 'is_correct': false},
-        {'text': 'Baseball', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      sportsId,
-      'What sport uses a bat and a ball?',
-      [
-        {'text': 'Baseball', 'is_correct': true},
-        {'text': 'Tennis', 'is_correct': false},
-        {'text': 'Soccer', 'is_correct': false},
-        {'text': 'Golf', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      sportsId,
-      'Which sport is played in a pool?',
-      [
-        {'text': 'Swimming', 'is_correct': true},
-        {'text': 'Basketball', 'is_correct': false},
-        {'text': 'Soccer', 'is_correct': false},
-        {'text': 'Tennis', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      sportsId,
-      'What sport involves running very fast?',
-      [
-        {'text': 'Track and field', 'is_correct': true},
-        {'text': 'Basketball', 'is_correct': false},
-        {'text': 'Tennis', 'is_correct': false},
-        {'text': 'Golf', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      sportsId,
-      'Which sport involves a net over grass?',
-      [
-        {'text': 'Volleyball', 'is_correct': true},
-        {'text': 'Basketball', 'is_correct': false},
-        {'text': 'Tennis', 'is_correct': false},
-        {'text': 'Soccer', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      sportsId,
-      'What sport uses an oval ball and a field?',
-      [
-        {'text': 'American Football', 'is_correct': true},
-        {'text': 'Soccer', 'is_correct': false},
-        {'text': 'Basketball', 'is_correct': false},
-        {'text': 'Baseball', 'is_correct': false},
-      ],
-    );
-    await insertQuestionWithAnswers(
-      sportsId,
-      'Which sport involves jumping on ice?',
-      [
-        {'text': 'Ice skating', 'is_correct': true},
-        {'text': 'Hockey', 'is_correct': false},
-        {'text': 'Basketball', 'is_correct': false},
-        {'text': 'Tennis', 'is_correct': false},
-      ],
-    );
+    // ============================================================
+    // SPORTS (category_id = 10) - PREMIUM
+    // ============================================================
+    await insertQuiz(categoryId: 10, question: 'Which sport uses a hoop and ball?', a1: 'Basketball', a2: 'Soccer', a3: 'Tennis', a4: 'Cricket', correctAnswers: '1');
+    await insertQuiz(categoryId: 10, question: 'Which sport uses a ball and a racket?', a1: 'Tennis', a2: 'Basketball', a3: 'Soccer', a4: 'Volleyball', correctAnswers: '1');
+    await insertQuiz(categoryId: 10, question: 'Which sport is played on grass with a ball?', a1: 'Soccer', a2: 'Tennis', a3: 'Basketball', a4: 'Baseball', correctAnswers: '1');
+    await insertQuiz(categoryId: 10, question: 'What sport uses a bat and a ball?', a1: 'Baseball', a2: 'Tennis', a3: 'Soccer', a4: 'Golf', correctAnswers: '1');
+    await insertQuiz(categoryId: 10, question: 'Which sport is played in a pool?', a1: 'Swimming', a2: 'Basketball', a3: 'Soccer', a4: 'Tennis', correctAnswers: '1');
+    await insertQuiz(categoryId: 10, question: 'What sport involves running very fast?', a1: 'Track and field', a2: 'Basketball', a3: 'Tennis', a4: 'Golf', correctAnswers: '1');
+    await insertQuiz(categoryId: 10, question: 'Which sport involves a net over grass?', a1: 'Volleyball', a2: 'Basketball', a3: 'Tennis', a4: 'Soccer', correctAnswers: '1');
+    await insertQuiz(categoryId: 10, question: 'What sport uses an oval ball and a field?', a1: 'American Football', a2: 'Soccer', a3: 'Basketball', a4: 'Baseball', correctAnswers: '1');
+    await insertQuiz(categoryId: 10, question: 'Which sport involves jumping on ice?', a1: 'Ice skating', a2: 'Hockey', a3: 'Basketball', a4: 'Tennis', correctAnswers: '1');
+    await insertQuiz(categoryId: 10, question: 'Which sports use a ball?', a1: 'Soccer', a2: 'Swimming', a3: 'Basketball', a4: 'Running', correctAnswers: '1,3', points: 15);
   }
 
   Future<void> close() async {
@@ -1070,183 +420,18 @@ class DatabaseHelper {
     db.close();
   }
 
-  /// Seed database if questions table is empty (ensures questions exist even on upgrades).
+  /// Seed database if quizzes table is empty (ensures quizzes exist even on upgrades).
   Future<void> seedFromAssetsIfEmpty() async {
     final db = await database;
 
-    // Check if questions already exist - if they do, we don't need to seed
-    final questionCountRes = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM questions',
+    // Check if quizzes already exist
+    final quizCountRes = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM quizzes',
     );
-    final questionCount = questionCountRes.first['count'] as int? ?? 0;
-    if (questionCount > 0) return; // questions already exist, no need to seed
+    final quizCount = quizCountRes.first['count'] as int? ?? 0;
+    if (quizCount > 0) return; // quizzes already exist
 
-    // Check if categories exist - if not, we need to seed everything
-    final categoryCountRes = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM categories',
-    );
-    final categoryCount = categoryCountRes.first['count'] as int? ?? 0;
-
-    try {
-      // If no categories, we need to seed from assets
-      if (categoryCount == 0) {
-        final categoriesJson = await rootBundle.loadString(
-          'assets/seeds/categories.json',
-        );
-        final questionsJson = await rootBundle.loadString(
-          'assets/seeds/questions.json',
-        );
-        final answersJson = await rootBundle.loadString(
-          'assets/seeds/answers.json',
-        );
-
-        final List<dynamic> categoriesList = json.decode(categoriesJson);
-        final List<dynamic> questionsList = json.decode(questionsJson);
-        final List<dynamic> answersList = json.decode(answersJson);
-
-        // Insert categories and map names to ids
-        final Map<String, int> catIds = {};
-        for (final c in categoriesList) {
-          final id = await db.insert('categories', {
-            'name': c['name'],
-            'description': c['description'],
-            'image_url': c['image_url'],
-            'color': c['color'],
-            'is_active': c['is_active'] ?? 1,
-            'required_score': c['required_score'] ?? 0,
-            'is_premium': c['is_premium'] ?? 0,
-          });
-          catIds[c['name']] = id;
-        }
-
-        // Helper to insert question with answers
-        Future<void> insertQ(
-          String categoryName,
-          String questionText,
-          List<dynamic> ansList,
-        ) async {
-          final catId = catIds[categoryName];
-          if (catId == null) return;
-          final qId = await db.insert('questions', {
-            'category_id': catId,
-            'question_text': questionText,
-            'image_url': null,
-            'level': 1,
-            'points': 10,
-          });
-          int order = 0;
-          for (final a in ansList) {
-            await db.insert('answers', {
-              'question_id': qId,
-              'answer_text': a['text'],
-              'is_correct': a['is_correct'] ? 1 : 0,
-              'display_order': order++,
-            });
-          }
-        }
-
-        // Build a map from question text -> answers data from answersList for quick lookup
-        final Map<String, dynamic> answersByQuestion = {};
-        for (final a in answersList) {
-          answersByQuestion[a['question_text']] = a;
-        }
-
-        // Insert questions
-        for (final q in questionsList) {
-          final categoryName = q['category_name'];
-          final questionText = q['question_text'];
-          final matchedAnswers = answersByQuestion[questionText];
-          if (matchedAnswers != null && matchedAnswers['answers'] != null) {
-            final List<dynamic> ansTexts = matchedAnswers['answers'];
-            final int correctIndex = matchedAnswers['correct_index'] ?? 0;
-            final List<dynamic> ansObjs = [];
-            for (int i = 0; i < ansTexts.length; i++) {
-              ansObjs.add({
-                'text': ansTexts[i],
-                'is_correct': i == correctIndex,
-              });
-            }
-            await insertQ(categoryName, questionText, ansObjs);
-          }
-        }
-      } else if (categoryCount > 0) {
-        // Categories exist but no questions - get existing category IDs and seed questions into them
-        final categoriesResult = await db.query(
-          'categories',
-          columns: ['id', 'name'],
-        );
-        final Map<String, int> catIds = {};
-        for (final row in categoriesResult) {
-          catIds[row['name'] as String] = row['id'] as int;
-        }
-
-        // Helper to insert question with answers
-        Future<void> insertQ(
-          String categoryName,
-          String questionText,
-          List<dynamic> ansList,
-        ) async {
-          final catId = catIds[categoryName];
-          if (catId == null) return;
-          final qId = await db.insert('questions', {
-            'category_id': catId,
-            'question_text': questionText,
-            'image_url': null,
-            'level': 1,
-            'points': 10,
-          });
-          int order = 0;
-          for (final a in ansList) {
-            await db.insert('answers', {
-              'question_id': qId,
-              'answer_text': a['text'],
-              'is_correct': a['is_correct'] ? 1 : 0,
-              'display_order': order++,
-            });
-          }
-        }
-
-        try {
-          final questionsJson = await rootBundle.loadString(
-            'assets/seeds/questions.json',
-          );
-          final answersJson = await rootBundle.loadString(
-            'assets/seeds/answers.json',
-          );
-          final List<dynamic> questionsList = json.decode(questionsJson);
-          final List<dynamic> answersList = json.decode(answersJson);
-
-          // Build a map from question text -> answers data
-          final Map<String, dynamic> answersByQuestion = {};
-          for (final a in answersList) {
-            answersByQuestion[a['question_text']] = a;
-          }
-
-          // Insert questions
-          for (final q in questionsList) {
-            final categoryName = q['category_name'];
-            final questionText = q['question_text'];
-            final matchedAnswers = answersByQuestion[questionText];
-            if (matchedAnswers != null && matchedAnswers['answers'] != null) {
-              final List<dynamic> ansTexts = matchedAnswers['answers'];
-              final int correctIndex = matchedAnswers['correct_index'] ?? 0;
-              final List<dynamic> ansObjs = [];
-              for (int i = 0; i < ansTexts.length; i++) {
-                ansObjs.add({
-                  'text': ansTexts[i],
-                  'is_correct': i == correctIndex,
-                });
-              }
-              await insertQ(categoryName, questionText, ansObjs);
-            }
-          }
-        } catch (e) {
-          debugPrint('Failed to seed questions from assets: ${e.toString()}');
-        }
-      }
-    } catch (e) {
-      // Ignore seeding errors but log debug
-      debugPrint('DB seeding from assets failed: ${e.toString()}');
-    }
+    // Seed quizzes
+    await _seedQuizzes(db);
   }
 }

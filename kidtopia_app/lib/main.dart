@@ -18,8 +18,7 @@ import 'data/databases/db_helper.dart';
 // Repositories
 import 'data/repositories/user_repository.dart';
 import 'data/repositories/category_repository.dart';
-import 'data/repositories/question_repository.dart';
-import 'data/repositories/answer_repository.dart';
+import 'data/repositories/quiz_repository.dart';
 
 // Cubits
 import 'logic/cubits/auth_cubit.dart';
@@ -76,7 +75,7 @@ void main() async {
 
   // 4. Initialize Supabase
   await Supabase.initialize(
-    url: 'https://dwfrpbgpqzhjn.supabase.co',
+    url: 'https://dwfrpbgpqzhjmomcoqgo.supabase.co',
     anonKey: 'sb_publishable_jQx7zwFRf5FiNtgDlYw82w_w1Hk9AsR', // Replace with your Supabase key
   );
 
@@ -298,8 +297,7 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
   Widget _buildMainApp() {
     final userRepository = UserRepository();
     final categoryRepository = CategoryRepository();
-    final questionRepository = QuestionRepository();
-    final answerRepository = AnswerRepository();
+    final quizRepository = QuizRepository();
 
     return MultiRepositoryProvider(
       providers: [
@@ -307,10 +305,9 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
         RepositoryProvider<CategoryRepository>(
           create: (_) => categoryRepository,
         ),
-        RepositoryProvider<QuestionRepository>(
-          create: (_) => questionRepository,
+        RepositoryProvider<QuizRepository>(
+          create: (_) => quizRepository,
         ),
-        RepositoryProvider<AnswerRepository>(create: (_) => answerRepository),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -321,8 +318,7 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
             create: (context) => CategoryCubit(categoryRepository),
           ),
           BlocProvider<QuizCubit>(
-            create: (context) =>
-                QuizCubit(questionRepository, answerRepository),
+            create: (context) => QuizCubit(quizRepository),
           ),
           BlocProvider<LocaleCubit>(
             create: (context) => LocaleCubit(),

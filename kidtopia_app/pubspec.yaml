@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   google_fonts: ^6.0.0
+  cached_network_image: ^3.3.1
 
   flutter_localizations:
     sdk: flutter
@@ -23,6 +24,7 @@ dependencies:
   sqflite_common_ffi: ^2.3.6
 
   supabase_flutter: ^2.3.0
+  crypto: ^3.0.2
   
   # Firebase
   firebase_core: ^2.24.0
@@ -33,10 +35,9 @@ dependencies:
   equatable: ^2.0.5
   
   # Background Jobs
-  workmanager: ^0.5.2
-  
+  workmanager: ^0.9.0
   # Local Notifications
-  flutter_local_notifications: ^16.1.0
+  flutter_local_notifications: ^19.0.0
 
 
 dev_dependencies:
