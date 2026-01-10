@@ -37,7 +37,7 @@ class _SignInState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
@@ -179,9 +179,7 @@ class _SignInState extends State<SignInScreen> {
                         child: TextButton(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(l10n.passwordResetSoon),
-                              ),
+                              SnackBar(content: Text(l10n.passwordResetSoon)),
                             );
                           },
                           child: Text(
@@ -219,8 +217,9 @@ class _SignInState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
                         children: [
                           Text(
                             l10n.dontHaveAccount,

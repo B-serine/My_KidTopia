@@ -66,15 +66,19 @@ void main() async {
   }
 
   // 1. Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // 2. Initialize Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
 
-  // 3. Initialize FCM background handler
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  // 3. Initialize FCM background handler only on supported mobile/desktop targets
+  // Guard to avoid MissingPluginException on platforms where the plugin
+  // is not implemented (e.g., Windows when firebase_messaging isn't registered).
+  if (Platform.isIOS || Platform.isMacOS) {
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  } else {
+    print('Skipping FirebaseMessaging background handler on this platform.');
+  }
 
   // 4. Initialize Supabase
   await Supabase.initialize(
@@ -124,10 +128,10 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
     try {
       await DatabaseHelper.instance.database;
       await DatabaseHelper.instance.seedFromAssetsIfEmpty();
-      
+
       // Request notification permissions
       await _setupNotifications();
-      
+
       await Future.delayed(const Duration(milliseconds: 500));
 
       if (mounted) {
@@ -145,6 +149,16 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
   }
 
   Future<void> _setupNotifications() async {
+    // Only attempt to use firebase_messaging on platforms where it's supported
+    // and the plugin is properly registered. Avoid calling on Windows where
+    // the plugin may not be available which causes MissingPluginException.
+    if (!(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
+      print(
+        'Notifications skipped: firebase_messaging not supported on this platform.',
+      );
+      return;
+    }
+
     try {
       FirebaseMessaging messaging = FirebaseMessaging.instance;
 
@@ -164,9 +178,10 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
       // Save token to Supabase if user is logged in
       final userId = supabase.auth.currentUser?.id;
       if (token != null && userId != null) {
-        await supabase.from('profiles').update({
-          'fcm_token': token,
-        }).eq('id', userId);
+        await supabase
+            .from('profiles')
+            .update({'fcm_token': token})
+            .eq('id', userId);
       }
 
       // Listen to foreground messages
@@ -320,9 +335,7 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
         RepositoryProvider<CategoryRepository>(
           create: (_) => categoryRepository,
         ),
-        RepositoryProvider<QuizRepository>(
-          create: (_) => quizRepository,
-        ),
+        RepositoryProvider<QuizRepository>(create: (_) => quizRepository),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -335,15 +348,13 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
           BlocProvider<QuizCubit>(
             create: (context) => QuizCubit(quizRepository),
           ),
-          BlocProvider<LocaleCubit>(
-            create: (context) => LocaleCubit(),
-          ),
+          BlocProvider<LocaleCubit>(create: (context) => LocaleCubit()),
         ],
         child: BlocBuilder<LocaleCubit, Locale>(
           builder: (context, locale) {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
-              
+
               // Localization configuration
               localizationsDelegates: const [
                 AppLocalizations.delegate,
@@ -357,7 +368,7 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
                 Locale('ar'), // Arabic
               ],
               locale: locale,
-              
+
               theme: ThemeData(
                 textTheme: GoogleFonts.comfortaaTextTheme(),
                 useMaterial3: true,
@@ -376,7 +387,8 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
                 '/matching_game': (context) => const MatchingGame(),
                 '/memory_card_game': (context) => const MemoryCardGame(),
                 '/pet_feeding_game': (context) => const PetFeedingGame(),
-                '/rainbow_monster_game': (context) => const RainbowMonsterGame(),
+                '/rainbow_monster_game': (context) =>
+                    const RainbowMonsterGame(),
                 '/water_sort_game': (context) => const WaterSortGame(),
               },
             );
