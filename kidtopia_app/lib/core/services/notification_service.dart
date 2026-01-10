@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:workmanager/workmanager.dart';
 import '../../../l10n/app_localizations.dart';
@@ -9,7 +10,7 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
-  
+
   // Localization strings - can be set by the app
   late AppLocalizations l10n;
 
@@ -26,16 +27,25 @@ class NotificationService {
     // iOS initialization settings
     const DarwinInitializationSettings iosInitializationSettings =
         DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
+
+    // Windows initialization settings (required when targeting Windows)
+    const WindowsInitializationSettings windowsInitializationSettings =
+        WindowsInitializationSettings(
+          appName: 'Kidtopia',
+          appUserModelId: 'com.kidtopia.app',
+          guid: '3f2a3c1d-8f2b-4b2a-9a3d-1234567890ab',
+        );
 
     const InitializationSettings initializationSettings =
         InitializationSettings(
-      android: androidInitializationSettings,
-      iOS: iosInitializationSettings,
-    );
+          android: androidInitializationSettings,
+          iOS: iosInitializationSettings,
+          windows: windowsInitializationSettings,
+        );
 
     await _flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
@@ -51,13 +61,10 @@ class NotificationService {
     try {
       final bool? result = await _flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
-      
+            IOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+
       if (result != null) {
         print('iOS notification permission: $result');
       }
@@ -80,14 +87,14 @@ class NotificationService {
   }) async {
     final AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'quiz_reminder_channel',
-      l10n.quizReminders,
-      channelDescription: l10n.quizRemindersDescription,
-      importance: Importance.high,
-      priority: Priority.high,
-      showWhen: true,
-      icon: '@mipmap/ic_launcher',
-    );
+          'quiz_reminder_channel',
+          l10n.quizReminders,
+          channelDescription: l10n.quizRemindersDescription,
+          importance: Importance.high,
+          priority: Priority.high,
+          showWhen: true,
+          icon: '@mipmap/ic_launcher',
+        );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -111,31 +118,44 @@ class NotificationService {
 
   // Schedule periodic notifications using WorkManager
   Future<void> schedulePeriodicReminders() async {
-    await Workmanager().initialize(
-      callbackDispatcher,
-      isInDebugMode: false, // Set to false in production
-    );
+    // Workmanager currently only has platform implementations for Android/iOS.
+    // Avoid initializing it on platforms like Windows where it will throw.
+    if (!(Platform.isAndroid || Platform.isIOS)) {
+      print(
+        'Skipping periodic reminders: WorkManager not supported on this platform.',
+      );
+      return;
+    }
 
-    // Register periodic task (runs every 2 days)
-    await Workmanager().registerPeriodicTask(
-      'quiz_reminder_task',
-      'quizReminderTask',
-      frequency: const Duration(days: 2), // Every 2 days
-      initialDelay: const Duration(minutes: 1), // First notification after 1 minute
-      constraints: Constraints(
-        networkType: NetworkType.notRequired, // FIXED: Changed from not_required
-        requiresBatteryNotLow: false,
-        requiresCharging: false,
-        requiresDeviceIdle: false,
-        requiresStorageNotLow: false,
-      ),
-      inputData: {
-        'title': l10n.timeToPlay,
-        'body': l10n.timeToPlayBody,
-      },
-    );
+    try {
+      await Workmanager().initialize(
+        callbackDispatcher,
+        isInDebugMode: false, // Set to false in production
+      );
 
-    print(l10n.periodicReminderScheduled);
+      // Register periodic task (runs every 2 days)
+      await Workmanager().registerPeriodicTask(
+        'quiz_reminder_task',
+        'quizReminderTask',
+        frequency: const Duration(days: 2), // Every 2 days
+        initialDelay: const Duration(
+          minutes: 1,
+        ), // First notification after 1 minute
+        constraints: Constraints(
+          networkType:
+              NetworkType.notRequired, // FIXED: Changed from not_required
+          requiresBatteryNotLow: false,
+          requiresCharging: false,
+          requiresDeviceIdle: false,
+          requiresStorageNotLow: false,
+        ),
+        inputData: {'title': l10n.timeToPlay, 'body': l10n.timeToPlayBody},
+      );
+
+      print(l10n.periodicReminderScheduled);
+    } catch (e) {
+      print('Failed to schedule periodic reminders: $e');
+    }
   }
 
   // Cancel all scheduled tasks
@@ -162,14 +182,14 @@ void callbackDispatcher() {
 
       const AndroidNotificationDetails androidDetails =
           AndroidNotificationDetails(
-        'quiz_reminder_channel',
-        'Quiz Reminders',
-        channelDescription: 'Notifications to remind users to play quiz',
-        importance: Importance.high,
-        priority: Priority.high,
-        showWhen: true,
-        icon: '@mipmap/ic_launcher',
-      );
+            'quiz_reminder_channel',
+            'Quiz Reminders',
+            channelDescription: 'Notifications to remind users to play quiz',
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+            icon: '@mipmap/ic_launcher',
+          );
 
       const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
         presentAlert: true,
