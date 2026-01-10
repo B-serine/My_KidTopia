@@ -427,4 +427,102 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get skip => 'Passer';
+
+  @override
+  String get quizReminders => 'Rappels de Quiz';
+
+  @override
+  String get quizRemindersDescription =>
+      'Notifications pour rappeler aux utilisateurs de jouer au quiz';
+
+  @override
+  String get periodicReminderScheduled =>
+      'Rappel périodique programmé (tous les 2 jours)';
+
+  @override
+  String get allRemindersScheduled => 'Tous les rappels sont programmés';
+
+  @override
+  String get allReminersCancelled => 'Tous les rappels annulés';
+
+  @override
+  String reminderCancelled(String taskName) {
+    return 'Rappel $taskName annulé';
+  }
+
+  @override
+  String get timeToPlay => '🎮 C\'est l\'heure de jouer!';
+
+  @override
+  String get timeToPlayBody =>
+      'Hé! Prêt pour des quiz amusants? Continuons à apprendre! 🌟';
+
+  @override
+  String backgroundTaskExecuted(String taskName) {
+    return 'Tâche de fond exécutée: $taskName';
+  }
+
+  @override
+  String get notificationSentSuccessfully => 'Notification envoyée avec succès';
+
+  @override
+  String errorShowingNotification(String error) {
+    return 'Erreur lors de l\'affichage de la notification: $error';
+  }
+
+  @override
+  String iOSNotificationPermission(String permission) {
+    return 'Permission de notification iOS: $permission';
+  }
+
+  @override
+  String notificationTapped(String payload) {
+    return 'Notification appuyée: $payload';
+  }
+
+  @override
+  String get error => 'Erreur';
+
+  @override
+  String get failedToUpgrade =>
+      'Impossible de mettre à niveau. Veuillez réessayer.';
+
+  @override
+  String get unlockAllFeatures => 'Déverrouiller toutes les fonctionnalités!';
+
+  @override
+  String get joinThousandsOfPremiumUsers =>
+      'Rejoignez des milliers d\'utilisateurs premium';
+
+  @override
+  String get whatYouGet => 'Ce que vous obtenez:';
+
+  @override
+  String get processing => 'Traitement en cours...';
+
+  @override
+  String get securePayment => 'Paiement sécurisé • 100% sûr';
+
+  @override
+  String get congratulations => 'Félicitations!';
+
+  @override
+  String get enjoyUnlimitedAccess =>
+      'Profitez d\'un accès illimité à toutes les fonctionnalités!';
+
+  @override
+  String get accessToMusicSportsCategories =>
+      'Accès aux catégories Musique et Sports';
+
+  @override
+  String get unlimitedQuizAttempts => 'Tentatives de quiz illimitées';
+
+  @override
+  String get adFreeExperience => 'Expérience sans publicité';
+
+  @override
+  String get priorityCustomerSupport => 'Support client prioritaire';
+
+  @override
+  String get allFutureUpdatesIncluded => 'Tous les futurs mises à jour inclus';
 }

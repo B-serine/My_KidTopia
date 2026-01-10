@@ -879,6 +879,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Skip'**
   String get skip;
+
+  /// No description provided for @quizReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz Reminders'**
+  String get quizReminders;
+
+  /// No description provided for @quizRemindersDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications to remind users to play quiz'**
+  String get quizRemindersDescription;
+
+  /// No description provided for @periodicReminderScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Periodic reminder scheduled (every 2 days)'**
+  String get periodicReminderScheduled;
+
+  /// No description provided for @allRemindersScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'All reminders scheduled'**
+  String get allRemindersScheduled;
+
+  /// No description provided for @allReminersCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'All reminders cancelled'**
+  String get allReminersCancelled;
+
+  /// No description provided for @reminderCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder {taskName} cancelled'**
+  String reminderCancelled(String taskName);
+
+  /// No description provided for @timeToPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'🎮 Time to Play!'**
+  String get timeToPlay;
+
+  /// No description provided for @timeToPlayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Hey! Ready for some fun quizzes? Let\'s keep learning! 🌟'**
+  String get timeToPlayBody;
+
+  /// No description provided for @backgroundTaskExecuted.
+  ///
+  /// In en, this message translates to:
+  /// **'Background task executed: {taskName}'**
+  String backgroundTaskExecuted(String taskName);
+
+  /// No description provided for @notificationSentSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification sent successfully'**
+  String get notificationSentSuccessfully;
+
+  /// No description provided for @errorShowingNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Error showing notification: {error}'**
+  String errorShowingNotification(String error);
+
+  /// No description provided for @iOSNotificationPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS notification permission: {permission}'**
+  String iOSNotificationPermission(String permission);
+
+  /// No description provided for @notificationTapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification tapped: {payload}'**
+  String notificationTapped(String payload);
+
+  /// No description provided for @error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get error;
+
+  /// No description provided for @failedToUpgrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upgrade. Please try again.'**
+  String get failedToUpgrade;
+
+  /// No description provided for @unlockAllFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock All Features!'**
+  String get unlockAllFeatures;
+
+  /// No description provided for @joinThousandsOfPremiumUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Join thousands of premium users'**
+  String get joinThousandsOfPremiumUsers;
+
+  /// No description provided for @whatYouGet.
+  ///
+  /// In en, this message translates to:
+  /// **'What You Get:'**
+  String get whatYouGet;
+
+  /// No description provided for @processing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing...'**
+  String get processing;
+
+  /// No description provided for @securePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure Payment • 100% Safe'**
+  String get securePayment;
+
+  /// No description provided for @congratulations.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations!'**
+  String get congratulations;
+
+  /// No description provided for @enjoyUnlimitedAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoy unlimited access to all features!'**
+  String get enjoyUnlimitedAccess;
+
+  /// No description provided for @accessToMusicSportsCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to Music & Sports categories'**
+  String get accessToMusicSportsCategories;
+
+  /// No description provided for @unlimitedQuizAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited quiz attempts'**
+  String get unlimitedQuizAttempts;
+
+  /// No description provided for @adFreeExperience.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad-free experience'**
+  String get adFreeExperience;
+
+  /// No description provided for @priorityCustomerSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority customer support'**
+  String get priorityCustomerSupport;
+
+  /// No description provided for @allFutureUpdatesIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'All future updates included'**
+  String get allFutureUpdatesIncluded;
 }
 
 class _AppLocalizationsDelegate

@@ -216,5 +216,71 @@
   "memoryGame": "Memory Game",
   "foodMemoryGame": "Food Memory Game",
 
-  "skip": "Skip"
+  "skip": "Skip",
+  
+  "quizReminders": "Quiz Reminders",
+  "quizRemindersDescription": "Notifications to remind users to play quiz",
+  "periodicReminderScheduled": "Periodic reminder scheduled (every 2 days)",
+  "allRemindersScheduled": "All reminders scheduled",
+  "allReminersCancelled": "All reminders cancelled",
+  "reminderCancelled": "Reminder {taskName} cancelled",
+  "@reminderCancelled": {
+    "placeholders": {
+      "taskName": {
+        "type": "String"
+      }
+    }
+  },
+  "timeToPlay": "🎮 Time to Play!",
+  "timeToPlayBody": "Hey! Ready for some fun quizzes? Let's keep learning! 🌟",
+  "backgroundTaskExecuted": "Background task executed: {taskName}",
+  "@backgroundTaskExecuted": {
+    "placeholders": {
+      "taskName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSentSuccessfully": "Notification sent successfully",
+  "errorShowingNotification": "Error showing notification: {error}",
+  "@errorShowingNotification": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "iOSNotificationPermission": "iOS notification permission: {permission}",
+  "@iOSNotificationPermission": {
+    "placeholders": {
+      "permission": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTapped": "Notification tapped: {payload}",
+  "@notificationTapped": {
+    "placeholders": {
+      "payload": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "error": "Error",
+  "failedToUpgrade": "Failed to upgrade. Please try again.",
+  
+  "unlockAllFeatures": "Unlock All Features!",
+  "joinThousandsOfPremiumUsers": "Join thousands of premium users",
+  "whatYouGet": "What You Get:",
+  "processing": "Processing...",
+  "securePayment": "Secure Payment • 100% Safe",
+  "congratulations": "Congratulations!",
+  "enjoyUnlimitedAccess": "Enjoy unlimited access to all features!",
+  
+  "accessToMusicSportsCategories": "Access to Music & Sports categories",
+  "unlimitedQuizAttempts": "Unlimited quiz attempts",
+  "adFreeExperience": "Ad-free experience",
+  "priorityCustomerSupport": "Priority customer support",
+  "allFutureUpdatesIncluded": "All future updates included"
 }

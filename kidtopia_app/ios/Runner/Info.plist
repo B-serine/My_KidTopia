@@ -45,5 +45,15 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- ========== NOTIFICATION PERMISSIONS - ADD THIS SECTION ========== -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+		<string>processing</string>
+	</array>
+	<!-- ================================================================= -->
+	
 </dict>
 </plist>
