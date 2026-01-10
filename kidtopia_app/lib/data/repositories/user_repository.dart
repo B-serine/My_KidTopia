@@ -44,13 +44,15 @@ class UserRepository extends BaseRepository<User> {
   Future<ReturnResult> insertItem(Map<String, dynamic> record) async {
     try {
       final validationResult = validate(record);
-      if (validationResult != null && !validationResult.state)
+      if (validationResult != null && !validationResult.state) {
         return validationResult;
+      }
 
       // Ensure username uniqueness
       final existing = await getByName(record['name'].toString());
-      if (existing != null)
+      if (existing != null) {
         return ReturnResult(state: false, message: 'Username already exists');
+      }
 
       final db = await dbHelper.database;
       final id = await db.insert(tableName, record);

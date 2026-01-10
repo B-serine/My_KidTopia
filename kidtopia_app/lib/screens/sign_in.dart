@@ -98,8 +98,9 @@ class _SignInState extends State<SignInScreen> {
                           TextFormField(
                             controller: _usernameController,
                             validator: (value) {
-                              if (value == null || value.isEmpty)
+                              if (value == null || value.isEmpty) {
                                 return l10n.pleaseEnterUsername;
+                              }
                               return null;
                             },
                             decoration: InputDecoration(
@@ -135,8 +136,9 @@ class _SignInState extends State<SignInScreen> {
                             controller: _passwordController,
                             obscureText: !_isPasswordVisible,
                             validator: (value) {
-                              if (value == null || value.isEmpty)
+                              if (value == null || value.isEmpty) {
                                 return l10n.pleaseEnterPassword;
+                              }
                               return null;
                             },
                             decoration: InputDecoration(

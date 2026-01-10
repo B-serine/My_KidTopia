@@ -112,10 +112,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           TextFormField(
                             controller: _usernameController,
                             validator: (value) {
-                              if (value == null || value.isEmpty)
+                              if (value == null || value.isEmpty) {
                                 return l10n.pleaseEnterUsername;
-                              if (value.length < 3)
+                              }
+                              if (value.length < 3) {
                                 return l10n.usernameMinLength;
+                              }
                               return null;
                             },
                             decoration: InputDecoration(
@@ -151,10 +153,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             controller: _passwordController,
                             obscureText: !_isPasswordVisible,
                             validator: (value) {
-                              if (value == null || value.isEmpty)
+                              if (value == null || value.isEmpty) {
                                 return l10n.pleaseEnterPassword;
-                              if (value.length < 4)
+                              }
+                              if (value.length < 4) {
                                 return l10n.passwordMinLength;
+                              }
                               return null;
                             },
                             decoration: InputDecoration(
@@ -202,8 +206,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             controller: _confirmPasswordController,
                             obscureText: !_isConfirmPasswordVisible,
                             validator: (value) {
-                              if (value == null || value.isEmpty)
+                              if (value == null || value.isEmpty) {
                                 return l10n.pleaseConfirmPassword;
+                              }
                               return null;
                             },
                             decoration: InputDecoration(
