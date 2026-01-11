@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/user.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../data/models/user.dart' as user_model;
 import '../../data/repositories/user_repository.dart';
 
 // ==================== STATES ====================
@@ -10,7 +11,7 @@ class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 
 class AuthAuthenticated extends AuthState {
-  final User user;
+  final user_model.User user;
   AuthAuthenticated(this.user);
 }
 
@@ -24,11 +25,12 @@ class AuthError extends AuthState {
 // ==================== CUBIT ====================
 class AuthCubit extends Cubit<AuthState> {
   final UserRepository _userRepository;
-  User? _currentUser;
+  final SupabaseClient _supabase = Supabase.instance.client;
+  user_model.User? _currentUser;
 
   AuthCubit(this._userRepository) : super(AuthInitial());
 
-  User? get currentUser => _currentUser;
+  user_model.User? get currentUser => _currentUser;
 
   Future<void> signUp({
     required String name,
@@ -38,7 +40,7 @@ class AuthCubit extends Cubit<AuthState> {
   }) async {
     emit(AuthLoading());
     try {
-      final user = User(
+      final user = user_model.User(
         name: name,
         password: password,
         age: age,
@@ -90,9 +92,23 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       final newScore = _currentUser!.totalScore + additionalPoints;
       final updatedUser = _currentUser!.copyWith(totalScore: newScore);
+      
+      // Update local SQLite
       final result = await _userRepository.updateItem(updatedUser.toMap());
 
       if (result.state) {
+        // Update Supabase if user is logged in
+        final supabaseUserId = _supabase.auth.currentUser?.id;
+        if (supabaseUserId != null) {
+          try {
+            await _supabase.from('profiles').update({
+              'total_score': newScore,
+            }).eq('id', supabaseUserId);
+          } catch (e) {
+            print('Error updating score in Supabase: $e');
+          }
+        }
+        
         _currentUser = updatedUser;
         emit(AuthAuthenticated(updatedUser));
       }
@@ -104,12 +120,33 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> upgradeToPremium() async {
     if (_currentUser == null) return;
 
+    emit(AuthLoading());
+    
     try {
       final updatedUser = _currentUser!.copyWith(isPremium: true);
+      
+      // Update local SQLite database
       final result = await _userRepository.updateItem(updatedUser.toMap());
+      
       if (result.state) {
+        // Update Supabase if user is logged in
+        final supabaseUserId = _supabase.auth.currentUser?.id;
+        if (supabaseUserId != null) {
+          try {
+            await _supabase.from('profiles').update({
+              'is_premium': true,
+            }).eq('id', supabaseUserId);
+            print('Successfully updated premium status in Supabase');
+          } catch (e) {
+            print('Error updating premium status in Supabase: $e');
+            // Continue anyway since local update succeeded
+          }
+        }
+        
         _currentUser = updatedUser;
         emit(AuthAuthenticated(updatedUser));
+      } else {
+        emit(AuthError('Failed to upgrade to premium'));
       }
     } catch (e) {
       emit(AuthError('Failed to upgrade: ${e.toString()}'));

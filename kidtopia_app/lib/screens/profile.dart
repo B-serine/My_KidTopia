@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../assets/app_colors/app_colors.dart';
 import '../logic/cubits/auth_cubit.dart';
 import '../l10n/app_localizations.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -30,7 +31,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _handleUpgradeToPremium() {
-    context.read<AuthCubit>().upgradeToPremium();
+    // Navigate to premium upgrade screen
+    Navigator.pushNamed(context, '/premium_upgrade');
   }
 
   @override
@@ -40,9 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated && state.user.isPremium) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.nowPremium), backgroundColor: brandYellow),
-          );
+          // The success message is now shown in the PremiumUpgradeScreen
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: brandRed),
@@ -130,9 +130,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 24),
 
                     _buildListTile(Icons.emoji_events, brandPurple, l10n.myScore, l10n.scorePoints(totalScore), () => Navigator.pushNamed(context, '/score')),
-                    _buildListTile(Icons.payment, brandYellow, l10n.paymentSettings, null, () {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.paymentComingSoon)));
-                    }),
+                    _buildListTile(
+                      Icons.payment,
+                      brandYellow,
+                      l10n.paymentSettings,
+                      null,
+                      () {
+                        // Navigate to premium upgrade screen
+                        Navigator.pushNamed(context, '/premium_upgrade');
+                      },
+                    ),
 
                     const SizedBox(height: 24),
 

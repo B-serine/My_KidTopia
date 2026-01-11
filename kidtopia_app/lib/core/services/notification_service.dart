@@ -11,7 +11,7 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
   
   // Localization strings - can be set by the app
-  late AppLocalizations l10n;
+  AppLocalizations? l10n;
 
   void setLocalization(AppLocalizations localizations) {
     l10n = localizations;
@@ -19,6 +19,8 @@ class NotificationService {
 
   // Initialize notifications
   Future<void> initialize() async {
+    print('NotificationService: Initializing...');
+    
     // Android initialization settings
     const AndroidInitializationSettings androidInitializationSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -42,8 +44,36 @@ class NotificationService {
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
+    // Create notification channels for Android
+    await _createAndroidNotificationChannels();
+
     // Request permissions for iOS
     await _requestPermissions();
+    
+    print('NotificationService: Initialization complete');
+  }
+
+  // Create Android notification channels
+  Future<void> _createAndroidNotificationChannels() async {
+    try {
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'quiz_reminder_channel',
+        'Quiz Reminders',
+        description: 'Notifications to remind you to play quiz',
+        importance: Importance.high,
+        enableVibration: true,
+        playSound: true,
+      );
+
+      await _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+      
+      print('NotificationService: Notification channel created');
+    } catch (e) {
+      print('NotificationService: Error creating notification channel: $e');
+    }
   }
 
   // Request notification permissions (mainly for iOS)
@@ -81,8 +111,8 @@ class NotificationService {
     final AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
       'quiz_reminder_channel',
-      l10n.quizReminders,
-      channelDescription: l10n.quizRemindersDescription,
+      l10n?.quizReminders ?? 'Quiz Reminders',
+      channelDescription: l10n?.quizRemindersDescription ?? 'Notifications to remind you to play quiz',
       importance: Importance.high,
       priority: Priority.high,
       showWhen: true,
@@ -111,43 +141,93 @@ class NotificationService {
 
   // Schedule periodic notifications using WorkManager
   Future<void> schedulePeriodicReminders() async {
-    await Workmanager().initialize(
-      callbackDispatcher,
-      isInDebugMode: false, // Set to false in production
-    );
+    try {
+      print('NotificationService: Starting notification scheduling...');
+      
+      // Initialize Workmanager first
+      print('NotificationService: Initializing Workmanager...');
+      await Workmanager().initialize(
+        callbackDispatcher,
+      );
+      print('NotificationService: Workmanager initialized successfully');
 
-    // Register periodic task (runs every 2 days)
-    await Workmanager().registerPeriodicTask(
-      'quiz_reminder_task',
-      'quizReminderTask',
-      frequency: const Duration(days: 2), // Every 2 days
-      initialDelay: const Duration(minutes: 1), // First notification after 1 minute
-      constraints: Constraints(
-        networkType: NetworkType.notRequired, // FIXED: Changed from not_required
-        requiresBatteryNotLow: false,
-        requiresCharging: false,
-        requiresDeviceIdle: false,
-        requiresStorageNotLow: false,
-      ),
-      inputData: {
-        'title': l10n.timeToPlay,
-        'body': l10n.timeToPlayBody,
-      },
-    );
+      // Cancel any existing tasks
+      print('NotificationService: Clearing existing tasks...');
+      await Workmanager().cancelAll();
+      print('NotificationService: Existing tasks cleared');
 
-    print(l10n.periodicReminderScheduled);
+      // Schedule a one-time task to run after 2 minutes
+      print('NotificationService: Scheduling one-time notification (2 minutes)...');
+      await Workmanager().registerOneOffTask(
+        'quiz_reminder_once_${DateTime.now().millisecondsSinceEpoch}',
+        'quizReminderTask',
+        initialDelay: const Duration(minutes: 2),
+        constraints: Constraints(
+          networkType: NetworkType.notRequired,
+          requiresBatteryNotLow: false,
+          requiresCharging: false,
+          requiresDeviceIdle: false,
+          requiresStorageNotLow: false,
+        ),
+        inputData: {
+          'title': l10n?.timeToPlay ?? '🎮 Time to Play!',
+          'body': l10n?.timeToPlayBody ?? 'Ready for some fun quizzes? Let\'s learn! 🌟',
+        },
+        backoffPolicy: BackoffPolicy.exponential,
+      );
+      print('NotificationService: One-time task scheduled (will trigger in ~2 minutes)');
+
+      // Then schedule periodic task to run every day
+      print('NotificationService: Scheduling daily notifications...');
+      await Workmanager().registerPeriodicTask(
+        'quiz_reminder_daily_${DateTime.now().millisecondsSinceEpoch}',
+        'quizReminderTask',
+        frequency: const Duration(days: 1), // Every day
+        initialDelay: const Duration(minutes: 1), // Start at 2 minutes, then repeat every day
+        constraints: Constraints(
+          networkType: NetworkType.notRequired,
+          requiresBatteryNotLow: false,
+          requiresCharging: false,
+          requiresDeviceIdle: false,
+          requiresStorageNotLow: false,
+        ),
+        inputData: {
+          'title': l10n?.timeToPlay ?? '🎮 Time to Play!',
+          'body': l10n?.timeToPlayBody ?? 'Ready for some fun quizzes? Let\'s learn! 🌟',
+        },
+        backoffPolicy: BackoffPolicy.linear,
+        backoffPolicyDelay: const Duration(seconds: 10),
+      );
+      
+      print('NotificationService: ✓ Daily task registered successfully');
+      print('NotificationService: ✓ Notification schedule:');
+      print('  - First notification: ~2 minutes');
+      print('  - Then every day (24 hours)');
+      print('NotificationService: ✓ Notification scheduling complete!');
+    } catch (e, stackTrace) {
+      print('NotificationService: ❌ Error scheduling reminders: $e');
+      print('NotificationService: Stack trace: $stackTrace');
+    }
   }
 
   // Cancel all scheduled tasks
   Future<void> cancelAllReminders() async {
     await Workmanager().cancelAll();
-    print(l10n.allReminersCancelled);
+    print(l10n?.allReminersCancelled ?? 'All reminders cancelled');
   }
 
   // Cancel specific task
   Future<void> cancelReminder(String uniqueName) async {
     await Workmanager().cancelByUniqueName(uniqueName);
-    print(l10n.reminderCancelled(uniqueName));
+    print(l10n?.reminderCancelled(uniqueName) ?? 'Reminder cancelled: $uniqueName');
+  }
+
+  // Test notification - shows immediately (useful for debugging)
+  Future<void> testNotification() async {
+    await showNotification(
+      title: '🎮 Test Notification',
+      body: 'If you see this, notifications are working!',
+    );
   }
 }
 
@@ -155,11 +235,50 @@ class NotificationService {
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
+    print('\n\n');
+    print('═══════════════════════════════════════════════');
+    print('🔔 BACKGROUND NOTIFICATION TASK TRIGGERED');
+    print('═══════════════════════════════════════════════');
+    print('Task Name: $task');
+    print('Time: ${DateTime.now()}');
+    
     try {
-      // Show notification when background task runs
+      // Initialize notifications plugin in background
+      print('Step 1: Initializing notification plugin...');
       final FlutterLocalNotificationsPlugin notificationsPlugin =
           FlutterLocalNotificationsPlugin();
 
+      // Initialize the plugin
+      const AndroidInitializationSettings androidInitializationSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+
+      const InitializationSettings initializationSettings =
+          InitializationSettings(
+        android: androidInitializationSettings,
+      );
+
+      await notificationsPlugin.initialize(initializationSettings);
+      print('Step 1: ✓ Notification plugin initialized');
+
+      // Create notification channel
+      print('Step 2: Creating notification channel...');
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'quiz_reminder_channel',
+        'Quiz Reminders',
+        description: 'Notifications to remind users to play quiz',
+        importance: Importance.high,
+        enableVibration: true,
+        playSound: true,
+      );
+
+      await notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+      print('Step 2: ✓ Notification channel created');
+
+      // Build notification details
+      print('Step 3: Building notification details...');
       const AndroidNotificationDetails androidDetails =
           AndroidNotificationDetails(
         'quiz_reminder_channel',
@@ -169,6 +288,8 @@ void callbackDispatcher() {
         priority: Priority.high,
         showWhen: true,
         icon: '@mipmap/ic_launcher',
+        enableVibration: true,
+        playSound: true,
       );
 
       const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -181,16 +302,39 @@ void callbackDispatcher() {
         android: androidDetails,
         iOS: iosDetails,
       );
+      print('Step 3: ✓ Notification details built');
 
+      // Prepare data
+      final notificationId = DateTime.now().millisecond;
+      final title = inputData?['title'] ?? '🎮 Time to Play!';
+      final body = inputData?['body'] ?? 'Ready for some fun quizzes? Let\'s learn! 🌟';
+      
+      print('Step 4: Showing notification...');
+      print('  ID: $notificationId');
+      print('  Title: $title');
+      print('  Body: $body');
+      
+      // Show the notification
       await notificationsPlugin.show(
-        DateTime.now().millisecond, // Unique ID
-        inputData?['title'] ?? '🎮 Time to Play!',
-        inputData?['body'] ?? 'Ready for some fun quizzes? Let\'s learn! 🌟',
+        notificationId,
+        title,
+        body,
         notificationDetails,
       );
 
+      print('Step 4: ✓ Notification shown successfully');
+      print('═══════════════════════════════════════════════');
+      print('🔔 BACKGROUND TASK COMPLETED SUCCESSFULLY');
+      print('═══════════════════════════════════════════════\n');
+      
       return Future.value(true);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('═══════════════════════════════════════════════');
+      print('❌ ERROR IN BACKGROUND TASK');
+      print('═══════════════════════════════════════════════');
+      print('Error: $e');
+      print('Stack trace: $stackTrace');
+      print('═══════════════════════════════════════════════\n');
       return Future.value(false);
     }
   });
