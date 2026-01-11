@@ -147,5 +147,36 @@
   "memoryGame": "لعبة الذاكرة",
   "foodMemoryGame": "لعبة الذاكرة",
   
- "skip": "تخطي"
+  "skip": "تخطي",
+  
+  "quizReminders": "تذكيرات الاختبار",
+  "quizRemindersDescription": "إشعارات لتذكير المستخدمين باللعب",
+  "periodicReminderScheduled": "تم جدولة التذكير الدوري (كل يومين)",
+  "allRemindersScheduled": "تم جدولة جميع التذكيرات",
+  "allReminersCancelled": "تم إلغاء جميع التذكيرات",
+  "reminderCancelled": "تم إلغاء التذكير {taskName}",
+  "timeToPlay": "🎮 حان وقت اللعب!",
+  "timeToPlayBody": "مرحباً! هل أنت مستعد لاختبارات ممتعة؟ لنستمر في التعلم! 🌟",
+  "backgroundTaskExecuted": "تم تنفيذ المهمة الخلفية: {taskName}",
+  "notificationSentSuccessfully": "تم إرسال الإشعار بنجاح",
+  "errorShowingNotification": "خطأ في عرض الإشعار: {error}",
+  "iOSNotificationPermission": "إذن الإشعار على iOS: {permission}",
+  "notificationTapped": "تم النقر على الإشعار: {payload}",
+  
+  "error": "خطأ",
+  "failedToUpgrade": "فشل الترقية. يرجى المحاولة مرة أخرى.",
+  
+  "unlockAllFeatures": "فتح جميع الميزات!",
+  "joinThousandsOfPremiumUsers": "انضم إلى آلاف مستخدمي البريميوم",
+  "whatYouGet": "ما الذي تحصل عليه:",
+  "processing": "جاري المعالجة...",
+  "securePayment": "دفع آمن • آمن 100%",
+  "congratulations": "تهانينا!",
+  "enjoyUnlimitedAccess": "استمتع بالوصول غير المحدود إلى جميع الميزات!",
+  
+  "accessToMusicSportsCategories": "الوصول إلى فئات الموسيقى والرياضة",
+  "unlimitedQuizAttempts": "محاولات اختبار غير محدودة",
+  "adFreeExperience": "تجربة خالية من الإعلانات",
+  "priorityCustomerSupport": "دعم العملاء ذو الأولوية",
+  "allFutureUpdatesIncluded": "جميع التحديثات المستقبلية مضمنة"
 }

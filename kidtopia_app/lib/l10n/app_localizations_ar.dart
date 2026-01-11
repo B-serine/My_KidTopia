@@ -422,4 +422,98 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get skip => 'تخطي';
+
+  @override
+  String get quizReminders => 'تذكيرات الاختبار';
+
+  @override
+  String get quizRemindersDescription => 'إشعارات لتذكير المستخدمين باللعب';
+
+  @override
+  String get periodicReminderScheduled => 'تم جدولة التذكير الدوري (كل يومين)';
+
+  @override
+  String get allRemindersScheduled => 'تم جدولة جميع التذكيرات';
+
+  @override
+  String get allReminersCancelled => 'تم إلغاء جميع التذكيرات';
+
+  @override
+  String reminderCancelled(String taskName) {
+    return 'تم إلغاء التذكير $taskName';
+  }
+
+  @override
+  String get timeToPlay => '🎮 حان وقت اللعب!';
+
+  @override
+  String get timeToPlayBody =>
+      'مرحباً! هل أنت مستعد لاختبارات ممتعة؟ لنستمر في التعلم! 🌟';
+
+  @override
+  String backgroundTaskExecuted(String taskName) {
+    return 'تم تنفيذ المهمة الخلفية: $taskName';
+  }
+
+  @override
+  String get notificationSentSuccessfully => 'تم إرسال الإشعار بنجاح';
+
+  @override
+  String errorShowingNotification(String error) {
+    return 'خطأ في عرض الإشعار: $error';
+  }
+
+  @override
+  String iOSNotificationPermission(String permission) {
+    return 'إذن الإشعار على iOS: $permission';
+  }
+
+  @override
+  String notificationTapped(String payload) {
+    return 'تم النقر على الإشعار: $payload';
+  }
+
+  @override
+  String get error => 'خطأ';
+
+  @override
+  String get failedToUpgrade => 'فشل الترقية. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get unlockAllFeatures => 'فتح جميع الميزات!';
+
+  @override
+  String get joinThousandsOfPremiumUsers => 'انضم إلى آلاف مستخدمي البريميوم';
+
+  @override
+  String get whatYouGet => 'ما الذي تحصل عليه:';
+
+  @override
+  String get processing => 'جاري المعالجة...';
+
+  @override
+  String get securePayment => 'دفع آمن • آمن 100%';
+
+  @override
+  String get congratulations => 'تهانينا!';
+
+  @override
+  String get enjoyUnlimitedAccess =>
+      'استمتع بالوصول غير المحدود إلى جميع الميزات!';
+
+  @override
+  String get accessToMusicSportsCategories =>
+      'الوصول إلى فئات الموسيقى والرياضة';
+
+  @override
+  String get unlimitedQuizAttempts => 'محاولات اختبار غير محدودة';
+
+  @override
+  String get adFreeExperience => 'تجربة خالية من الإعلانات';
+
+  @override
+  String get priorityCustomerSupport => 'دعم العملاء ذو الأولوية';
+
+  @override
+  String get allFutureUpdatesIncluded => 'جميع التحديثات المستقبلية مضمنة';
 }

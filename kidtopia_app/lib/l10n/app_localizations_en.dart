@@ -423,4 +423,99 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get skip => 'Skip';
+
+  @override
+  String get quizReminders => 'Quiz Reminders';
+
+  @override
+  String get quizRemindersDescription =>
+      'Notifications to remind users to play quiz';
+
+  @override
+  String get periodicReminderScheduled =>
+      'Periodic reminder scheduled (every 2 days)';
+
+  @override
+  String get allRemindersScheduled => 'All reminders scheduled';
+
+  @override
+  String get allReminersCancelled => 'All reminders cancelled';
+
+  @override
+  String reminderCancelled(String taskName) {
+    return 'Reminder $taskName cancelled';
+  }
+
+  @override
+  String get timeToPlay => '🎮 Time to Play!';
+
+  @override
+  String get timeToPlayBody =>
+      'Hey! Ready for some fun quizzes? Let\'s keep learning! 🌟';
+
+  @override
+  String backgroundTaskExecuted(String taskName) {
+    return 'Background task executed: $taskName';
+  }
+
+  @override
+  String get notificationSentSuccessfully => 'Notification sent successfully';
+
+  @override
+  String errorShowingNotification(String error) {
+    return 'Error showing notification: $error';
+  }
+
+  @override
+  String iOSNotificationPermission(String permission) {
+    return 'iOS notification permission: $permission';
+  }
+
+  @override
+  String notificationTapped(String payload) {
+    return 'Notification tapped: $payload';
+  }
+
+  @override
+  String get error => 'Error';
+
+  @override
+  String get failedToUpgrade => 'Failed to upgrade. Please try again.';
+
+  @override
+  String get unlockAllFeatures => 'Unlock All Features!';
+
+  @override
+  String get joinThousandsOfPremiumUsers => 'Join thousands of premium users';
+
+  @override
+  String get whatYouGet => 'What You Get:';
+
+  @override
+  String get processing => 'Processing...';
+
+  @override
+  String get securePayment => 'Secure Payment • 100% Safe';
+
+  @override
+  String get congratulations => 'Congratulations!';
+
+  @override
+  String get enjoyUnlimitedAccess => 'Enjoy unlimited access to all features!';
+
+  @override
+  String get accessToMusicSportsCategories =>
+      'Access to Music & Sports categories';
+
+  @override
+  String get unlimitedQuizAttempts => 'Unlimited quiz attempts';
+
+  @override
+  String get adFreeExperience => 'Ad-free experience';
+
+  @override
+  String get priorityCustomerSupport => 'Priority customer support';
+
+  @override
+  String get allFutureUpdatesIncluded => 'All future updates included';
 }

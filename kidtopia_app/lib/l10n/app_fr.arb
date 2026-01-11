@@ -147,5 +147,36 @@
   "memoryGame": "Jeu de Mémoire",
   "foodMemoryGame": "Jeu de Mémoire",
 
-  "skip": "Passer"
+  "skip": "Passer",
+  
+  "quizReminders": "Rappels de Quiz",
+  "quizRemindersDescription": "Notifications pour rappeler aux utilisateurs de jouer au quiz",
+  "periodicReminderScheduled": "Rappel périodique programmé (tous les 2 jours)",
+  "allRemindersScheduled": "Tous les rappels sont programmés",
+  "allReminersCancelled": "Tous les rappels annulés",
+  "reminderCancelled": "Rappel {taskName} annulé",
+  "timeToPlay": "🎮 C'est l'heure de jouer!",
+  "timeToPlayBody": "Hé! Prêt pour des quiz amusants? Continuons à apprendre! 🌟",
+  "backgroundTaskExecuted": "Tâche de fond exécutée: {taskName}",
+  "notificationSentSuccessfully": "Notification envoyée avec succès",
+  "errorShowingNotification": "Erreur lors de l'affichage de la notification: {error}",
+  "iOSNotificationPermission": "Permission de notification iOS: {permission}",
+  "notificationTapped": "Notification appuyée: {payload}",
+  
+  "error": "Erreur",
+  "failedToUpgrade": "Impossible de mettre à niveau. Veuillez réessayer.",
+  
+  "unlockAllFeatures": "Déverrouiller toutes les fonctionnalités!",
+  "joinThousandsOfPremiumUsers": "Rejoignez des milliers d'utilisateurs premium",
+  "whatYouGet": "Ce que vous obtenez:",
+  "processing": "Traitement en cours...",
+  "securePayment": "Paiement sécurisé • 100% sûr",
+  "congratulations": "Félicitations!",
+  "enjoyUnlimitedAccess": "Profitez d'un accès illimité à toutes les fonctionnalités!",
+  
+  "accessToMusicSportsCategories": "Accès aux catégories Musique et Sports",
+  "unlimitedQuizAttempts": "Tentatives de quiz illimitées",
+  "adFreeExperience": "Expérience sans publicité",
+  "priorityCustomerSupport": "Support client prioritaire",
+  "allFutureUpdatesIncluded": "Tous les futurs mises à jour inclus"
 }

@@ -26,6 +26,9 @@ import 'logic/cubits/category_cubit.dart';
 import 'logic/cubits/quiz_cubit.dart';
 import 'logic/cubits/locale_cubit.dart';
 
+// Services
+import 'core/services/notification_service.dart';
+
 // Screens
 import 'screens/home.dart';
 import 'screens/sign_up.dart';
@@ -76,8 +79,14 @@ void main() async {
   // 4. Initialize Supabase
   await Supabase.initialize(
     url: 'https://dwfrpbgpqzhjmomcoqgo.supabase.co',
-    anonKey: 'sb_publishable_jQx7zwFRf5FiNtgDlYw82w_w1Hk9AsR', // Replace with your Supabase key
+    anonKey: 'sb_publishable_jQx7zwFRf5FiNtgDlYw82w_w1Hk9AsR',
   );
+
+  // 5. Initialize Notification Service
+  await NotificationService().initialize();
+  
+  // 6. Schedule periodic reminders (every 2 days)
+  await NotificationService().schedulePeriodicReminders();
 
   runApp(const KidtopiaApp());
 }
@@ -163,7 +172,13 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
       // Listen to foreground messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         print('Foreground message: ${message.notification?.title}');
-        // You can show a local notification here
+        // Show local notification when app is in foreground
+        if (message.notification != null) {
+          NotificationService().showNotification(
+            title: message.notification!.title ?? 'Kidtopia',
+            body: message.notification!.body ?? 'You have a new message',
+          );
+        }
       });
 
       // Handle when app is opened from notification
