@@ -37,6 +37,7 @@ import 'screens/quiz.dart';
 import 'screens/sign_in.dart';
 import 'screens/score.dart';
 import 'screens/profile.dart';
+import 'screens/premium_upgrade.dart';
 
 // Game screens
 import 'screens/games/water_sort.dart';
@@ -59,6 +60,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  try {
+    // Initialize SQLite for desktop platforms
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
   // Initialize SQLite for desktop platforms
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
@@ -92,11 +99,92 @@ void main() async {
   // 6. Schedule periodic reminders (every 2 days)
   await NotificationService().schedulePeriodicReminders();
 
-  runApp(const KidtopiaApp());
+    // 1. Initialize Firebase
+    print('Initializing Firebase...');
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('Firebase initialized');
+
+    // 2. Initialize Crashlytics
+    print('Initializing Crashlytics...');
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    print('Crashlytics initialized');
+
+    // 3. Initialize FCM background handler
+    print('Setting FCM background handler...');
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    print('FCM handler set');
+
+    // 4. Initialize Supabase
+    print('Initializing Supabase...');
+    await Supabase.initialize(
+      url: 'https://dwfrpbgpqzhjmomcoqgo.supabase.co',
+      anonKey: 'sb_publishable_jQx7zwFRf5FiNtgDlYw82w_w1Hk9AsR',
+    );
+    print('Supabase initialized');
+
+    // 5. Initialize Notification Service
+    print('Initializing Notification Service...');
+    await NotificationService().initialize();
+    print('Notification Service initialized');
+    
+    // 6. Schedule periodic reminders (every 2 days)
+    print('Scheduling periodic reminders...');
+    await NotificationService().schedulePeriodicReminders();
+    print('Periodic reminders scheduled');
+
+    runApp(const KidtopiaApp());
+  } catch (e, stackTrace) {
+    print('ERROR during initialization: $e');
+    print('STACK TRACE: $stackTrace');
+    runApp(ErrorApp(error: e.toString()));
+  }
 }
 
 // Global Supabase client access
 final supabase = Supabase.instance.client;
+
+class ErrorApp extends StatelessWidget {
+  final String error;
+  const ErrorApp({super.key, required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.red[50],
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Colors.red[700]),
+                const SizedBox(height: 16),
+                Text(
+                  'Initialization Error',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red[700],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  error,
+                  style: TextStyle(color: Colors.red[600], fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class KidtopiaApp extends StatelessWidget {
   const KidtopiaApp({super.key});
@@ -126,12 +214,19 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
 
   Future<void> _initializeDatabase() async {
     try {
+      print('Initializing database...');
       await DatabaseHelper.instance.database;
+      print('Database initialized');
+      
+      print('Seeding data...');
       await DatabaseHelper.instance.seedFromAssetsIfEmpty();
-
+      print('Data seeded');
+      
       // Request notification permissions
+      print('Setting up notifications...');
       await _setupNotifications();
-
+      print('Notifications setup complete');
+      
       await Future.delayed(const Duration(milliseconds: 500));
 
       if (mounted) {
@@ -139,7 +234,9 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
           _isInitialized = true;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('ERROR initializing database: $e');
+      print('STACK TRACE: $stackTrace');
       if (mounted) {
         setState(() {
           _errorMessage = 'Failed to initialize database: ${e.toString()}';
@@ -163,6 +260,7 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
       FirebaseMessaging messaging = FirebaseMessaging.instance;
 
       // Request permission
+      print('Requesting notification permissions...');
       NotificationSettings settings = await messaging.requestPermission(
         alert: true,
         badge: true,
@@ -172,16 +270,17 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
       print('Notification permission: ${settings.authorizationStatus}');
 
       // Get FCM token
+      print('Getting FCM token...');
       String? token = await messaging.getToken();
       print('FCM Token: $token');
 
       // Save token to Supabase if user is logged in
       final userId = supabase.auth.currentUser?.id;
       if (token != null && userId != null) {
-        await supabase
-            .from('profiles')
-            .update({'fcm_token': token})
-            .eq('id', userId);
+        print('Saving FCM token to Supabase...');
+        await supabase.from('profiles').update({
+          'fcm_token': token,
+        }).eq('id', userId);
       }
 
       // Listen to foreground messages
@@ -201,8 +300,9 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
         print('App opened from notification: ${message.data}');
         // Navigate based on message data
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error setting up notifications: $e');
+      print('STACK TRACE: $stackTrace');
     }
   }
 
@@ -382,6 +482,7 @@ class _DatabaseInitializerState extends State<DatabaseInitializer> {
                 '/quiz': (context) => const QuizScreen(),
                 '/sign_in': (context) => const SignInScreen(),
                 '/score': (context) => const ScoreScreen(),
+                '/premium_upgrade': (context) => const PremiumUpgradeScreen(),
                 '/profile': (context) => const ProfileScreen(),
                 '/food_memory_game': (context) => const FoodMemoryGame(),
                 '/matching_game': (context) => const MatchingGame(),
