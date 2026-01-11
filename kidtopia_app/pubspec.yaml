@@ -27,9 +27,9 @@ dependencies:
   crypto: ^3.0.2
   
   # Firebase
-  firebase_core: ^2.24.0
-  firebase_messaging: ^14.7.0
-  firebase_crashlytics: ^3.4.0
+  firebase_core: ^4.3.0
+  firebase_messaging: ^16.1.0
+  firebase_crashlytics: ^5.0.6
   
   
   equatable: ^2.0.5
@@ -45,6 +45,9 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   test: ^1.26.3
+  mocktail: ^1.0.4
+  integration_test:
+    sdk: flutter
 
  
 
