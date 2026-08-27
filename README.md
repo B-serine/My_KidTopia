@@ -159,7 +159,7 @@ Before running the application, make sure you have:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/kidtopia-quiz-app.git
+git clone https://github.com/B-serine/My_KidTopia.git
 cd kidtopia-quiz-app
 ```
 
