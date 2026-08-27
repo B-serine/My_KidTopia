@@ -62,8 +62,9 @@ The following screenshot shows one of the mini-games available in Kidtopia:
 Here are some screenshots showcasing the Kidtopia application:
 
 <p align="center">
-  <img src="Screenshots/fil.jpeg" width="250">
+  
   <img src="Screenshots/fox1.jpeg" width="250">
+  <img src="Screenshots/fil.jpeg" width="250">
   <img src="Screenshots/game.jpeg" width="250">
 </p>
 
