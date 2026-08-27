@@ -62,7 +62,6 @@ The following screenshot shows one of the mini-games available in Kidtopia:
 Here are some screenshots showcasing the Kidtopia application:
 
 <p align="center">
-  
   <img src="Screenshots/fox1.jpeg" width="250">
   <img src="Screenshots/fil.jpeg" width="250">
   <img src="Screenshots/game.jpeg" width="250">
@@ -89,36 +88,6 @@ The application provides:
 ### 🌍 Multilingual Support
 
 Kidtopia supports multiple languages and provides a simple, intuitive interface adapted to young learners.
-
----
-
-## 📱 App Screenshots
-
-> Add screenshots of the main application screens here.
-
-### 🔐 Authentication
-
-<!-- Add Sign In / Sign Up screenshots -->
-
-### 🏠 Home & Categories
-
-<!-- Add Home / Category Selection screenshots -->
-
-### 📚 Quizzes
-
-<!-- Add Quiz screenshots -->
-
-### 🎮 Mini-Games
-
-<!-- Add Mini-Game screenshots -->
-
-### 👤 Profile & Statistics
-
-<!-- Add Profile / Statistics screenshots -->
-
----
-
-## 🏗️ Application Modules
 
 ### 🔐 Authentication & Profile
 
@@ -172,43 +141,6 @@ Firebase is used for:
 | **Firebase Firestore**      | Database and data storage                |
 | **Figma**                   | UI/UX design                             |
 | **Custom Assets**           | Child-friendly visuals and illustrations |
-
----
-
-## 📂 Project Structure
-
-```text
-kidtopia-quiz-app/
-│
-├── android/
-├── ios/
-│
-├── lib/
-│   ├── screens/
-│   │   ├── auth/
-│   │   ├── home/
-│   │   ├── quiz/
-│   │   ├── profile/
-│   │   └── games/
-│   │
-│   ├── models/
-│   ├── services/
-│   ├── widgets/
-│   ├── data/
-│   └── main.dart
-│
-├── assets/
-│   ├── images/
-│   ├── icons/
-│   └── sounds/
-│
-├── test/
-│
-├── pubspec.yaml
-└── README.md
-```
-
-> The structure above can be adapted to match the actual organization of the project.
 
 ---
 
@@ -338,15 +270,7 @@ Possible future improvements include:
 
 ---
 
-## 👥 Contributors
 
-| Name                   | Role           |
-| ---------------------- | -------------- |
-| **[Your Name]**        | Developer      |
-| **[Contributor Name]** | Developer      |
-| **[Contributor Name]** | UI/UX Designer |
-
----
 
 ## 📄 License
 
